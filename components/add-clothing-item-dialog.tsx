@@ -145,7 +145,7 @@ export default function AddClothingItemDialog({
                 <SelectContent>
                   {Object.entries(subcategories).map(([key, label]) => (
                     <SelectItem key={key} value={key}>
-                      {label}
+                      {label as string}
                     </SelectItem>
                   ))}
                 </SelectContent>

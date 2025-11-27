@@ -46,10 +46,10 @@ export default function EditClothingItemDialog({
 
   useEffect(() => {
     const colors = JSON.parse(item.colors || '[]')
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       colors: colors.join(', '),
-    })
+    }))
   }, [item])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,7 +140,7 @@ export default function EditClothingItemDialog({
                 <SelectContent>
                   {Object.entries(subcategories).map(([key, label]) => (
                     <SelectItem key={key} value={key}>
-                      {label}
+                      {label as string}
                     </SelectItem>
                   ))}
                 </SelectContent>
