@@ -59,7 +59,7 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
             {getCategoryLabel(category as ClothingCategory)}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categoryItems.map((item) => {
+            {(categoryItems as any[]).map((item) => {
               const colors = JSON.parse(item.colors || '[]')
               const statusLabels = {
                 IN_USE: 'Em uso',
