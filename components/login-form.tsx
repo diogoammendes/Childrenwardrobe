@@ -27,7 +27,11 @@ export default function LoginForm() {
       })
 
       if (result?.error) {
-        setError('Email ou palavra-passe incorretos')
+        if (result.error === 'Configuration') {
+          setError('Erro de configuração do servidor. Verifique as variáveis de ambiente.')
+        } else {
+          setError('Email ou palavra-passe incorretos')
+        }
       } else {
         router.refresh()
       }
