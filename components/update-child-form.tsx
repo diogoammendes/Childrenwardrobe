@@ -1,0 +1,130 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Edit, X } from 'lucide-react'
+
+export default function UpdateChildForm({ child }: { child: any }) {
+  const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [formData, setFormData] = useState({
+    height: child.height?.toString() || '',
+    weight: child.weight?.toString() || '',
+    shoeSize: child.shoeSize || '',
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const response = await fetch(`/api/children/${child.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          height: formData.height ? parseFloat(formData.height) : null,
+          weight: formData.weight ? parseFloat(formData.weight) : null,
+          shoeSize: formData.shoeSize || null,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Erro ao atualizar')
+      }
+
+      router.refresh()
+      setIsOpen(false)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        <Edit className="mr-2 h-4 w-4" />
+        Editar Dados
+      </Button>
+    )
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-lg border max-w-md">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">Editar Dados</h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsOpen(false)}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="height">Altura (cm)</Label>
+          <Input
+            id="height"
+            type="number"
+            step="0.1"
+            value={formData.height}
+            onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+            placeholder="Ex: 85.5"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="weight">Peso (kg)</Label>
+          <Input
+            id="weight"
+            type="number"
+            step="0.1"
+            value={formData.weight}
+            onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+            placeholder="Ex: 12.5"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="shoeSize">Tamanho de Sapato</Label>
+          <Input
+            id="shoeSize"
+            value={formData.shoeSize}
+            onChange={(e) => setFormData({ ...formData, shoeSize: e.target.value })}
+            placeholder="Ex: 28"
+          />
+        </div>
+
+        {error && (
+          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+            {error}
+          </div>
+        )}
+
+        <div className="flex space-x-2">
+          <Button type="submit" disabled={loading}>
+            {loading ? 'A guardar...' : 'Guardar'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+          >
+            Cancelar
+          </Button>
+        </div>
+      </form>
+    </div>
+  )
+}
+

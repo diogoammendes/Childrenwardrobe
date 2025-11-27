@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  PARENT
+}
+
+enum ItemStatus {
+  RETIRED
+  IN_USE
+  FUTURE_USE
+}
+
+enum ItemDisposition {
+  KEEP
+  SOLD
+  GIVEN_AWAY
+}
+
+enum ClothingCategory {
+  CLOTHES
+  SHOES
+  ACCESSORIES
+  BATH_BED
+}
+
+enum ClothesSubcategory {
+  BODIES_SHORT
+  BODIES_LONG
+  BODIES_SLEEVELESS
+  TSHIRTS_SHORT
+  TSHIRTS_LONG
+  TSHIRTS_SLEEVELESS
+  SHORTS
+  PANTS_SPORTSWEAR
+  PANTS_LEGGINGS
+  PANTS_DENIM
+  PANTS_CHINO
+  PANTS_FABRIC
+  JACKETS_SPORTSWEAR
+  JACKETS_KNIT
+  JACKETS_WINDBREAKER
+  JACKETS_BOMBER
+  SKIRT
+  ONEPIECE_FUZZY
+  ONEPIECE_DRESS
+  OVERALLS_SKIRT
+  OVERALLS_PANTS
+  OVERALLS_SHORTS
+  PAJAMAS_ONESIE_FEET
+  PAJAMAS_ONESIE_SHORT
+  PAJAMAS_ONESIE_NO_FEET
+  PAJAMAS_TWO_PIECE
+  SWEATERS_KNIT
+  SWEATERS_HOODIE
+  SWEATERS_SWEATSHIRT
+  VEST
+}
+
+enum ShoesSubcategory {
+  SNEAKERS
+  SANDALS
+  FLIPFLOPS
+  BOOTS
+}
+
+enum AccessoriesSubcategory {
+  SOCKS
+  TIGHTS
+  HAT
+  CAP
+  SCARF
+  BOWS_HEADBANDS
+}
+
+enum BathBedSubcategory {
+  TOWEL
+  SHEETS
+  DUVET
+  BLANKET
+  MATTRESS_PROTECTOR
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      UserRole @default(PARENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  children  Child[]
+}
+
+model Child {
+  id            String   @id @default(cuid())
+  name          String
+  gender        String
+  birthDate     DateTime
+  height        Float?   // em cm
+  weight        Float?   // em kg
+  shoeSize      String?
+  parentId      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  parent        User            @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  clothingItems ClothingItem[]
+  categoryMinimums CategoryMinimum[]
+}
+
+model ClothingItem {
+  id              String          @id @default(cuid())
+  category        ClothingCategory
+  subcategory     String // JSON string para diferentes tipos de subcategorias
+  size            String
+  colors          String // JSON array de cores
+  photo           String? // URL da foto
+  status          ItemStatus      @default(IN_USE)
+  disposition     ItemDisposition @default(KEEP)
+  isSet           Boolean         @default(false)
+  setItemId       String? // ID do item do conjunto (se for conjunto)
+  childId         String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  child           Child           @relation(fields: [childId], references: [id], onDelete: Cascade)
+  setItem         ClothingItem?   @relation("ClothingItemSet", fields: [setItemId], references: [id])
+  setItems        ClothingItem[]  @relation("ClothingItemSet")
+}
+
+model CategoryMinimum {
+  id          String          @id @default(cuid())
+  category    ClothingCategory
+  subcategory String
+  minimum     Int
+  childId     String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  child       Child           @relation(fields: [childId], references: [id], onDelete: Cascade)
+  
+  @@unique([childId, category, subcategory])
+}
+

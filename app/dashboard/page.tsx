@@ -1,0 +1,92 @@
+import { getServerSession } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Plus, Users } from 'lucide-react'
+
+export default async function DashboardPage() {
+  const session = await getServerSession()
+  
+  if (!session) {
+    redirect('/')
+  }
+
+  const children = await prisma.child.findMany({
+    where: { parentId: session.user.id },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">As Minhas Crianças</h1>
+        <Link href="/dashboard/children/new">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Criança
+          </Button>
+        </Link>
+      </div>
+
+      {children.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg shadow">
+          <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Ainda não tem crianças registadas
+          </h3>
+          <p className="text-gray-500 mb-4">
+            Comece por adicionar a primeira criança
+          </p>
+          <Link href="/dashboard/children/new">
+            <Button>Adicionar Primeira Criança</Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {children.map((child) => {
+            const age = Math.floor(
+              (new Date().getTime() - new Date(child.birthDate).getTime()) /
+                (1000 * 60 * 60 * 24 * 365.25)
+            )
+            return (
+              <Link
+                key={child.id}
+                href={`/dashboard/children/${child.id}`}
+                className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6"
+              >
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  {child.name}
+                </h2>
+                <div className="space-y-1 text-sm text-gray-600">
+                  <p>
+                    <span className="font-medium">Idade:</span> {age} anos
+                  </p>
+                  <p>
+                    <span className="font-medium">Género:</span> {child.gender}
+                  </p>
+                  {child.height && (
+                    <p>
+                      <span className="font-medium">Altura:</span> {child.height} cm
+                    </p>
+                  )}
+                  {child.weight && (
+                    <p>
+                      <span className="font-medium">Peso:</span> {child.weight} kg
+                    </p>
+                  )}
+                  {child.shoeSize && (
+                    <p>
+                      <span className="font-medium">Tamanho de sapato:</span> {child.shoeSize}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
