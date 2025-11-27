@@ -183,7 +183,8 @@ export default function CategoryMinimums({ childId, minimums }: { childId: strin
         <div className="space-y-2">
           {minimums.map((minimum) => {
             const categoryLabel = CLOTHING_CATEGORIES[minimum.category as ClothingCategory]?.label || minimum.category
-            const subcategoryLabel = getSubcategories(minimum.category as ClothingCategory)[minimum.subcategory] || minimum.subcategory
+            const subcategories = getSubcategories(minimum.category as ClothingCategory)
+            const subcategoryLabel = (subcategories as Record<string, string>)[minimum.subcategory] || minimum.subcategory
 
             return (
               <div
