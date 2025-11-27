@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { CLOTHING_CATEGORIES, getSubcategories, type ClothingCategory } from '@/lib/clothing-categories'
+import PhotoUpload from '@/components/photo-upload'
 
 export default function AddClothingItemDialog({
   childId,
@@ -175,16 +176,30 @@ export default function AddClothingItemDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="photo">URL da Foto</Label>
-            <Input
-              id="photo"
-              type="url"
-              value={formData.photo}
-              onChange={(e) => setFormData({ ...formData, photo: e.target.value })}
-              placeholder="https://..."
-            />
-          </div>
+          <PhotoUpload
+            value={formData.photo}
+            onChange={(value) => setFormData({ ...formData, photo: value })}
+            label="Foto"
+          />
+          
+          {formData.photo && formData.photo.startsWith('data:') && (
+            <div className="text-xs text-gray-500">
+              Foto carregada. Pode também inserir uma URL manualmente:
+            </div>
+          )}
+          
+          {(!formData.photo || !formData.photo.startsWith('data:')) && (
+            <div className="space-y-2">
+              <Label htmlFor="photo-url">Ou URL da Foto</Label>
+              <Input
+                id="photo-url"
+                type="url"
+                value={formData.photo.startsWith('data:') ? '' : formData.photo}
+                onChange={(e) => setFormData({ ...formData, photo: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="status">Estado *</Label>

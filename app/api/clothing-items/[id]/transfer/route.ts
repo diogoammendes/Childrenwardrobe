@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { hasChildAccess } from '@/lib/child-access'
 
 export async function POST(
   request: NextRequest,
@@ -28,11 +29,14 @@ export async function POST(
       )
     }
 
-    if (session.user.role === 'PARENT' && item.child.parentId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Não autorizado' },
-        { status: 403 }
-      )
+    if (session.user.role === 'PARENT') {
+      const hasAccess = await hasChildAccess(session.user.id, item.childId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Não autorizado' },
+          { status: 403 }
+        )
+      }
     }
 
     const body = await request.json()
@@ -56,11 +60,14 @@ export async function POST(
       )
     }
 
-    // Verificar se ambas as crianças pertencem ao mesmo pai
+    // Verificar se o utilizador tem acesso a ambas as crianças
     if (session.user.role === 'PARENT') {
-      if (item.child.parentId !== session.user.id || targetChild.parentId !== session.user.id) {
+      const hasAccessToSource = await hasChildAccess(session.user.id, item.childId)
+      const hasAccessToTarget = await hasChildAccess(session.user.id, childId)
+      
+      if (!hasAccessToSource || !hasAccessToTarget) {
         return NextResponse.json(
-          { error: 'Só pode transferir entre as suas próprias crianças' },
+          { error: 'Só pode transferir entre crianças a que tem acesso' },
           { status: 403 }
         )
       }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { hasChildAccess } from '@/lib/child-access'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,22 +36,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se o utilizador tem acesso a esta criança
-    const child = await prisma.child.findUnique({
-      where: { id: childId },
-    })
-
-    if (!child) {
-      return NextResponse.json(
-        { error: 'Criança não encontrada' },
-        { status: 404 }
-      )
-    }
-
-    if (session.user.role === 'PARENT' && child.parentId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Não autorizado' },
-        { status: 403 }
-      )
+    if (session.user.role === 'PARENT') {
+      const hasAccess = await hasChildAccess(session.user.id, childId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Não autorizado' },
+          { status: 403 }
+        )
+      }
     }
 
     const item = await prisma.clothingItem.create({

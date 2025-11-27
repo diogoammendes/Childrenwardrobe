@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { hasChildAccess } from '@/lib/child-access'
 
 export async function PATCH(
   request: NextRequest,
@@ -28,11 +29,14 @@ export async function PATCH(
       )
     }
 
-    if (session.user.role === 'PARENT' && item.child.parentId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Não autorizado' },
-        { status: 403 }
-      )
+    if (session.user.role === 'PARENT') {
+      const hasAccess = await hasChildAccess(session.user.id, item.childId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Não autorizado' },
+          { status: 403 }
+        )
+      }
     }
 
     const body = await request.json()
@@ -98,11 +102,14 @@ export async function DELETE(
       )
     }
 
-    if (session.user.role === 'PARENT' && item.child.parentId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Não autorizado' },
-        { status: 403 }
-      )
+    if (session.user.role === 'PARENT') {
+      const hasAccess = await hasChildAccess(session.user.id, item.childId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Não autorizado' },
+          { status: 403 }
+        )
+      }
     }
 
     await prisma.clothingItem.delete({

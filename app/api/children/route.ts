@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getAccessibleChildren } from '@/lib/child-access'
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,17 +55,26 @@ export async function GET(request: NextRequest) {
 
     if (session.user.role === 'ADMIN') {
       const children = await prisma.child.findMany({
-        include: { parent: { select: { name: true, email: true } } },
+        include: { 
+          parent: { select: { name: true, email: true } },
+          sharedWith: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
       })
       return NextResponse.json(children)
     }
 
-    const children = await prisma.child.findMany({
-      where: { parentId: session.user.id },
-      orderBy: { createdAt: 'desc' },
-    })
-
+    const children = await getAccessibleChildren(session.user.id)
     return NextResponse.json(children)
   } catch (error: any) {
     return NextResponse.json(

@@ -3,10 +3,12 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Plus, Edit } from 'lucide-react'
+import { Plus, Edit, Share2 } from 'lucide-react'
 import ChildWardrobe from '@/components/child-wardrobe'
 import UpdateChildForm from '@/components/update-child-form'
 import CategoryMinimums from '@/components/category-minimums'
+import ShareChildButton from '@/components/share-child-button'
+import { hasChildAccess } from '@/lib/child-access'
 
 export default async function ChildPage({
   params,
@@ -36,9 +38,14 @@ export default async function ChildPage({
   }
 
   // Verificar se o utilizador tem acesso a esta criança
-  if (session.user.role === 'PARENT' && child.parentId !== session.user.id) {
-    redirect('/dashboard')
+  if (session.user.role === 'PARENT') {
+    const hasAccess = await hasChildAccess(session.user.id, params.id)
+    if (!hasAccess) {
+      redirect('/dashboard')
+    }
   }
+  
+  const isOwner = child.parentId === session.user.id
 
   const age = Math.floor(
     (new Date().getTime() - new Date(child.birthDate).getTime()) /
@@ -63,7 +70,10 @@ export default async function ChildPage({
               {child.shoeSize && <p><span className="font-medium">Tamanho de sapato:</span> {child.shoeSize}</p>}
             </div>
           </div>
-          <UpdateChildForm child={child} />
+          <div className="flex space-x-2">
+            {isOwner && <ShareChildButton childId={child.id} />}
+            <UpdateChildForm child={child} />
+          </div>
         </div>
       </div>
 

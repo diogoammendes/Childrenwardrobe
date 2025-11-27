@@ -100,7 +100,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  children  Child[]
+  children       Child[]           @relation("ChildOwner")
+  sharedChildren ChildSharedWith[]
 }
 
 model Child {
@@ -115,9 +116,24 @@ model Child {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  parent        User            @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parent        User            @relation("ChildOwner", fields: [parentId], references: [id], onDelete: Cascade)
   clothingItems ClothingItem[]
   categoryMinimums CategoryMinimum[]
+  sharedWith    ChildSharedWith[]
+}
+
+model ChildSharedWith {
+  id        String   @id @default(cuid())
+  childId   String
+  userId    String
+  createdAt DateTime @default(now())
+  
+  child     Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([childId, userId])
+  @@index([childId])
+  @@index([userId])
 }
 
 model ClothingItem {
