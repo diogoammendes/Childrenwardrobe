@@ -45,6 +45,6 @@ export async function DELETE(
       { error: error.message || 'Erro ao eliminar mínimo' },
       { status: 500 }
     )
-  )
+  }
 }
 
