@@ -28,11 +28,13 @@ export default function LoginForm() {
 
       if (result?.error) {
         if (result.error === 'Configuration') {
-          setError('Erro de configuração do servidor. Verifique as variáveis de ambiente.')
-        } else {
+          setError('Erro de configuração: NEXTAUTH_SECRET ou NEXTAUTH_URL não estão configurados no Railway. Verifique Settings → Variables.')
+        } else if (result.error.includes('CredentialsSignin')) {
           setError('Email ou palavra-passe incorretos')
+        } else {
+          setError(`Erro: ${result.error}`)
         }
-      } else {
+      } else if (result?.ok) {
         router.refresh()
       }
     } catch (err) {

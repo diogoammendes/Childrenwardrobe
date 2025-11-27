@@ -5,11 +5,18 @@ import bcrypt from 'bcryptjs'
 
 // Validate required environment variables
 if (!process.env.NEXTAUTH_SECRET) {
-  console.error('NEXTAUTH_SECRET is not set. Authentication will not work properly.')
+  console.error('❌ NEXTAUTH_SECRET is not set. Authentication will not work properly.')
+  console.error('   Please set NEXTAUTH_SECRET in your environment variables.')
+  console.error('   Generate one with: openssl rand -base64 32')
 }
 
 if (!process.env.NEXTAUTH_URL) {
-  console.warn('NEXTAUTH_URL is not set. This may cause issues in production.')
+  console.warn('⚠️  NEXTAUTH_URL is not set. This may cause issues in production.')
+  console.warn('   Please set NEXTAUTH_URL to your application URL (e.g., https://your-app.up.railway.app)')
+}
+
+if (process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_URL) {
+  console.log('✅ NextAuth environment variables are configured')
 }
 
 export const authOptions: NextAuthOptions = {
