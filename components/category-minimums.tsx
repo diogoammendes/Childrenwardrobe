@@ -128,7 +128,7 @@ export default function CategoryMinimums({ childId, minimums }: { childId: strin
                   <option value="">Selecione...</option>
                   {Object.entries(subcategories).map(([key, label]) => (
                     <option key={key} value={key}>
-                      {label}
+                      {label as string}
                     </option>
                   ))}
                 </select>
