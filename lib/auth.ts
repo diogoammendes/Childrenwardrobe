@@ -3,7 +3,17 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
+// Validate required environment variables
+if (!process.env.NEXTAUTH_SECRET) {
+  console.error('NEXTAUTH_SECRET is not set. Authentication will not work properly.')
+}
+
+if (!process.env.NEXTAUTH_URL) {
+  console.warn('NEXTAUTH_URL is not set. This may cause issues in production.')
+}
+
 export const authOptions: NextAuthOptions = {
+  ...(process.env.NEXTAUTH_SECRET && { secret: process.env.NEXTAUTH_SECRET }),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -67,14 +77,19 @@ export const authOptions: NextAuthOptions = {
 }
 
 export async function getServerSession() {
-  const { getServerSession: getSession } = await import('next-auth/next')
-  const { headers } = await import('next/headers')
-  
-  const headersList = await headers()
-  const req = {
-    headers: Object.fromEntries(headersList.entries()),
-  } as any
+  try {
+    const { getServerSession: getSession } = await import('next-auth/next')
+    const { headers } = await import('next/headers')
+    
+    const headersList = await headers()
+    const req = {
+      headers: Object.fromEntries(headersList.entries()),
+    } as any
 
-  return await getSession({ req, ...authOptions })
+    return await getSession({ req, ...authOptions })
+  } catch (error) {
+    console.error('Error getting server session:', error)
+    return null
+  }
 }
 

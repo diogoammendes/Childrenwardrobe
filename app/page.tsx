@@ -3,14 +3,19 @@ import { getServerSession } from '@/lib/auth'
 import LoginForm from '@/components/login-form'
 
 export default async function Home() {
-  const session = await getServerSession()
-  
-  if (session) {
-    if (session.user.role === 'ADMIN') {
-      redirect('/admin')
-    } else {
-      redirect('/dashboard')
+  try {
+    const session = await getServerSession()
+    
+    if (session?.user) {
+      if (session.user.role === 'ADMIN') {
+        redirect('/admin')
+      } else {
+        redirect('/dashboard')
+      }
     }
+  } catch (error) {
+    console.error('Error checking session:', error)
+    // Continue to show login form if there's an error
   }
 
   return (
