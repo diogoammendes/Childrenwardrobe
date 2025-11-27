@@ -13,7 +13,11 @@ export default async function Home() {
         redirect('/dashboard')
       }
     }
-  } catch (error) {
+  } catch (error: any) {
+    // NEXT_REDIRECT is not an error, it's how Next.js handles redirects
+    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+      throw error // Re-throw redirect errors
+    }
     console.error('Error checking session:', error)
     // Continue to show login form if there's an error
   }
