@@ -114,14 +114,19 @@ export default function CreateChildForm({ sizeOptions }: { sizeOptions: SizeOpti
       <div className="space-y-2">
         <Label>Tamanho atual</Label>
         <Select
-          value={formData.currentSizeId}
-          onValueChange={(value) => setFormData({ ...formData, currentSizeId: value })}
+          value={formData.currentSizeId || '__none__'}
+          onValueChange={(value) =>
+            setFormData({
+              ...formData,
+              currentSizeId: value === '__none__' ? '' : value,
+            })
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecione o tamanho atual" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Sem seleção</SelectItem>
+            <SelectItem value="__none__">Sem seleção</SelectItem>
             {sizeOptions.map((option) => (
               <SelectItem key={option.id} value={option.id}>
                 {option.label}
@@ -134,14 +139,19 @@ export default function CreateChildForm({ sizeOptions }: { sizeOptions: SizeOpti
       <div className="space-y-2">
         <Label>Tamanho adicional (acima/abaixo)</Label>
         <Select
-          value={formData.secondarySizeId}
-          onValueChange={(value) => setFormData({ ...formData, secondarySizeId: value })}
+          value={formData.secondarySizeId || '__none__'}
+          onValueChange={(value) =>
+            setFormData({
+              ...formData,
+              secondarySizeId: value === '__none__' ? '' : value,
+            })
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Opcional: selecione um segundo tamanho" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Sem seleção</SelectItem>
+            <SelectItem value="__none__">Sem seleção</SelectItem>
             {sizeOptions.map((option) => (
               <SelectItem key={option.id} value={option.id}>
                 {option.label}

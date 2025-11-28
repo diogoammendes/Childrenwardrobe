@@ -161,14 +161,19 @@ export default function EditClothingItemDialog({
           <div className="space-y-2">
             <Label htmlFor="size">Tamanho *</Label>
             <Select
-              value={formData.sizeOptionId}
-              onValueChange={(value) => setFormData({ ...formData, sizeOptionId: value })}
+              value={formData.sizeOptionId || '__none__'}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  sizeOptionId: value === '__none__' ? '' : value,
+                })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o tamanho" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sem seleção</SelectItem>
+                <SelectItem value="__none__">Sem seleção</SelectItem>
                 {sizeOptions.map((option) => (
                   <SelectItem key={option.id} value={option.id}>
                     {option.label}

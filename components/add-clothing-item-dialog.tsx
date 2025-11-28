@@ -169,7 +169,7 @@ export default function AddClothingItemDialog({
           <div className="space-y-2">
             <Label htmlFor="size">Tamanho *</Label>
             <Select
-              value={formData.sizeOptionId}
+              value={formData.sizeOptionId || undefined}
               onValueChange={(value) => setFormData({ ...formData, sizeOptionId: value })}
             >
               <SelectTrigger>

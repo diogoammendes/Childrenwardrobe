@@ -37,6 +37,7 @@ export default function ClothingItemsList({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [showFilters, setShowFilters] = useState(false)
   
+  const NO_FILTER = '__all__'
   const [filters, setFilters] = useState({
     category: '',
     subcategory: '',
@@ -183,16 +184,17 @@ export default function ClothingItemsList({
             <div className="space-y-2">
               <Label htmlFor="filter-category">Categoria</Label>
               <Select
-                value={filters.category || undefined}
+                value={filters.category || NO_FILTER}
                 onValueChange={(value) => {
-                  setFilters({ ...filters, category: value, subcategory: '' })
+                  const normalized = value === NO_FILTER ? '' : value
+                  setFilters({ ...filters, category: normalized, subcategory: '' })
                 }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as categorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value={NO_FILTER}>Todas</SelectItem>
                   {Object.entries(CLOTHING_CATEGORIES).map(([key, value]) => (
                     <SelectItem key={key} value={key}>
                       {value.label}
@@ -205,15 +207,20 @@ export default function ClothingItemsList({
             <div className="space-y-2">
               <Label htmlFor="filter-subcategory">Subcategoria</Label>
               <Select
-                value={filters.subcategory || undefined}
-                onValueChange={(value) => setFilters({ ...filters, subcategory: value })}
+                value={filters.subcategory || NO_FILTER}
+                onValueChange={(value) =>
+                  setFilters({
+                    ...filters,
+                    subcategory: value === NO_FILTER ? '' : value,
+                  })
+                }
                 disabled={!filters.category}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as subcategorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value={NO_FILTER}>Todas</SelectItem>
                   {filters.category &&
                     Object.entries(getSubcategories(filters.category as ClothingCategory)).map(
                       ([key, label]) => (
@@ -229,14 +236,19 @@ export default function ClothingItemsList({
             <div className="space-y-2">
               <Label htmlFor="filter-size">Tamanho (lista)</Label>
               <Select
-                value={filters.sizeOptionId || undefined}
-                onValueChange={(value) => setFilters({ ...filters, sizeOptionId: value })}
+                value={filters.sizeOptionId || NO_FILTER}
+                onValueChange={(value) =>
+                  setFilters({
+                    ...filters,
+                    sizeOptionId: value === NO_FILTER ? '' : value,
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os tamanhos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value={NO_FILTER}>Todos</SelectItem>
                   {sizeOptions.map((option) => (
                     <SelectItem key={option.id} value={option.id}>
                       {option.label}
@@ -269,14 +281,16 @@ export default function ClothingItemsList({
             <div className="space-y-2">
               <Label htmlFor="filter-status">Estado</Label>
               <Select
-                value={filters.status || undefined}
-                onValueChange={(value) => setFilters({ ...filters, status: value })}
+                value={filters.status || NO_FILTER}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, status: value === NO_FILTER ? '' : value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os estados" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value={NO_FILTER}>Todos</SelectItem>
                   <SelectItem value="IN_USE">Em uso</SelectItem>
                   <SelectItem value="FUTURE_USE">Uso futuro</SelectItem>
                   <SelectItem value="RETIRED">Retirado</SelectItem>
@@ -287,14 +301,19 @@ export default function ClothingItemsList({
             <div className="space-y-2">
               <Label htmlFor="filter-disposition">Disposição</Label>
               <Select
-                value={filters.disposition || undefined}
-                onValueChange={(value) => setFilters({ ...filters, disposition: value })}
+                value={filters.disposition || NO_FILTER}
+                onValueChange={(value) =>
+                  setFilters({
+                    ...filters,
+                    disposition: value === NO_FILTER ? '' : value,
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as disposições" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value={NO_FILTER}>Todas</SelectItem>
                   <SelectItem value="KEEP">Manter</SelectItem>
                   <SelectItem value="SOLD">Vendido</SelectItem>
                   <SelectItem value="GIVEN_AWAY">Oferecido</SelectItem>
