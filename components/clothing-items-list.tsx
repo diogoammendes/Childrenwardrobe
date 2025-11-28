@@ -269,6 +269,7 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
         <div className="space-y-4">
           {Object.entries(groupedItems).map(([category, categoryItems]) => {
             const isExpanded = expandedCategories.has(category)
+            const items = categoryItems as any[]
             return (
               <div key={category} className="bg-white rounded-lg shadow">
                 <button
@@ -278,7 +279,7 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
                   <h3 className="text-xl font-semibold text-gray-800">
                     {getCategoryLabel(category as ClothingCategory)}
                     <span className="ml-2 text-sm font-normal text-gray-500">
-                      ({categoryItems.length})
+                      ({items.length})
                     </span>
                   </h3>
                   {isExpanded ? (
@@ -291,7 +292,7 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
                 {isExpanded && (
                   <div className="px-6 pb-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {(categoryItems as any[]).map((item) => {
+                      {items.map((item) => {
                         const colors = JSON.parse(item.colors || '[]')
 
                         return (

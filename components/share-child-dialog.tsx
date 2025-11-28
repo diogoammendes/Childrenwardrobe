@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -40,13 +40,7 @@ export default function ShareChildDialog({
   const [sharedWith, setSharedWith] = useState<Share[]>([])
   const [loadingShares, setLoadingShares] = useState(false)
 
-  useEffect(() => {
-    if (isOpen && childId) {
-      loadShares()
-    }
-  }, [isOpen, childId])
-
-  const loadShares = async () => {
+  const loadShares = useCallback(async () => {
     setLoadingShares(true)
     try {
       const response = await fetch(`/api/children/${childId}/share`)
@@ -59,7 +53,13 @@ export default function ShareChildDialog({
     } finally {
       setLoadingShares(false)
     }
-  }
+  }, [childId])
+
+  useEffect(() => {
+    if (isOpen && childId) {
+      loadShares()
+    }
+  }, [isOpen, childId, loadShares])
 
   const handleShare = async (e: React.FormEvent) => {
     e.preventDefault()
