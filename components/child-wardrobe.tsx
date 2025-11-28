@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Images } from 'lucide-react'
 import AddClothingItemDialog from './add-clothing-item-dialog'
+import AddMultipleClothingItemsDialog from './add-multiple-clothing-items-dialog'
 import ClothingItemsList from './clothing-items-list'
 import CategoryMinimums from './category-minimums'
 
@@ -24,6 +25,7 @@ export default function ChildWardrobe({
   sizeOptions?: SizeOption[]
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isMultipleDialogOpen, setIsMultipleDialogOpen] = useState(false)
 
   return (
     <div className="space-y-8">
@@ -55,13 +57,23 @@ export default function ChildWardrobe({
               Guarda-Roupa
             </h2>
           </div>
-          <Button 
-            onClick={() => setIsDialogOpen(true)}
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Adicionar Peça
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => setIsDialogOpen(true)}
+              variant="outline"
+              className="border-gray-300"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar Peça
+            </Button>
+            <Button 
+              onClick={() => setIsMultipleDialogOpen(true)}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+            >
+              <Images className="mr-2 h-4 w-4" />
+              Adicionar Múltiplas
+            </Button>
+          </div>
         </div>
         <ClothingItemsList childId={childId} items={items} sizeOptions={sizeOptions} />
       </div>
@@ -71,6 +83,13 @@ export default function ChildWardrobe({
         sizeOptions={sizeOptions}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
+      />
+      
+      <AddMultipleClothingItemsDialog
+        childId={childId}
+        sizeOptions={sizeOptions}
+        isOpen={isMultipleDialogOpen}
+        onClose={() => setIsMultipleDialogOpen(false)}
       />
     </div>
   )
