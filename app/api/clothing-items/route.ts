@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
       category,
       subcategory,
       size,
+      sizeOptionId,
       colors,
       photo,
       status,
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       childId,
     } = body
 
-    if (!category || !subcategory || !size || !colors || !childId) {
+    if (!category || !subcategory || !colors || !childId) {
       return NextResponse.json(
         { error: 'Campos obrigatórios em falta' },
         { status: 400 }
@@ -63,11 +64,36 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    let finalSize = size
+    let finalSizeOptionId: string | null = sizeOptionId || null
+
+    if (sizeOptionId) {
+      const option = await prisma.sizeOption.findUnique({
+        where: { id: sizeOptionId },
+      })
+
+      if (!option) {
+        return NextResponse.json(
+          { error: 'Tamanho selecionado não é válido' },
+          { status: 400 }
+        )
+      }
+
+      finalSize = option.label
+      finalSizeOptionId = option.id
+    } else if (!size || size.trim() === '') {
+      return NextResponse.json(
+        { error: 'Tamanho é obrigatório' },
+        { status: 400 }
+      )
+    }
+
     const item = await prisma.clothingItem.create({
       data: {
         category,
         subcategory,
-        size,
+        size: finalSize,
+        sizeOptionId: finalSizeOptionId,
         colors: JSON.stringify(colors),
         photo: photo || null,
         status: status || 'IN_USE',

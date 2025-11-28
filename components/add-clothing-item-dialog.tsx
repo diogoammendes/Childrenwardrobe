@@ -21,14 +21,21 @@ import {
 import { CLOTHING_CATEGORIES, getSubcategories, type ClothingCategory } from '@/lib/clothing-categories'
 import PhotoUpload from '@/components/photo-upload'
 
+type SizeOption = {
+  id: string
+  label: string
+}
+
 export default function AddClothingItemDialog({
   childId,
   isOpen,
   onClose,
+  sizeOptions = [],
 }: {
   childId: string
   isOpen: boolean
   onClose: () => void
+  sizeOptions?: SizeOption[]
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -36,7 +43,7 @@ export default function AddClothingItemDialog({
   const [formData, setFormData] = useState({
     category: '' as ClothingCategory | '',
     subcategory: '',
-    size: '',
+    sizeOptionId: '',
     colors: '',
     photo: '',
     status: 'IN_USE' as 'RETIRED' | 'IN_USE' | 'FUTURE_USE',
@@ -56,6 +63,10 @@ export default function AddClothingItemDialog({
         .map((c) => c.trim())
         .filter((c) => c.length > 0)
 
+      if (!formData.sizeOptionId) {
+        throw new Error('Selecione um tamanho antes de guardar.')
+      }
+
       const response = await fetch('/api/clothing-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,6 +74,7 @@ export default function AddClothingItemDialog({
           ...formData,
           colors: colorsArray,
           childId,
+          sizeOptionId: formData.sizeOptionId,
         }),
       })
 
@@ -77,7 +89,7 @@ export default function AddClothingItemDialog({
       setFormData({
         category: '' as ClothingCategory | '',
         subcategory: '',
-        size: '',
+        sizeOptionId: '',
         colors: '',
         photo: '',
         status: 'IN_USE',
@@ -156,13 +168,28 @@ export default function AddClothingItemDialog({
 
           <div className="space-y-2">
             <Label htmlFor="size">Tamanho *</Label>
-            <Input
-              id="size"
-              value={formData.size}
-              onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-              required
-              placeholder="Ex: 2 anos, 86, M"
-            />
+            <Select
+              value={formData.sizeOptionId}
+              onValueChange={(value) => setFormData({ ...formData, sizeOptionId: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tamanho" />
+              </SelectTrigger>
+              <SelectContent>
+                {sizeOptions.length === 0 ? (
+                  <SelectItem value="__disabled" disabled>
+                    Configure os tamanhos na área de administração
+                  </SelectItem>
+                ) : (
+                  sizeOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.label}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500">Gestão da lista disponível em Administração &gt; Tamanhos.</p>
           </div>
 
           <div className="space-y-2">

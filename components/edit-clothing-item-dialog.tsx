@@ -21,14 +21,21 @@ import {
 import { CLOTHING_CATEGORIES, getSubcategories, type ClothingCategory } from '@/lib/clothing-categories'
 import PhotoUpload from '@/components/photo-upload'
 
+type SizeOption = {
+  id: string
+  label: string
+}
+
 export default function EditClothingItemDialog({
   item,
   isOpen,
   onClose,
+  sizeOptions = [],
 }: {
   item: any
   isOpen: boolean
   onClose: () => void
+  sizeOptions?: SizeOption[]
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -43,6 +50,7 @@ export default function EditClothingItemDialog({
     disposition: item.disposition || 'KEEP',
     isSet: item.isSet || false,
     setItemId: item.setItemId || '',
+    sizeOptionId: item.sizeOption?.id || '',
   })
 
   useEffect(() => {
@@ -70,6 +78,7 @@ export default function EditClothingItemDialog({
         body: JSON.stringify({
           ...formData,
           colors: colorsArray,
+          sizeOptionId: formData.sizeOptionId || null,
         }),
       })
 
@@ -151,12 +160,31 @@ export default function EditClothingItemDialog({
 
           <div className="space-y-2">
             <Label htmlFor="size">Tamanho *</Label>
-            <Input
-              id="size"
-              value={formData.size}
-              onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-              required
-            />
+            <Select
+              value={formData.sizeOptionId}
+              onValueChange={(value) => setFormData({ ...formData, sizeOptionId: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tamanho" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Sem seleção</SelectItem>
+                {sizeOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!formData.sizeOptionId && (
+              <Input
+                id="size"
+                value={formData.size}
+                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                placeholder="Introduza manualmente"
+                className="mt-2"
+              />
+            )}
           </div>
 
           <div className="space-y-2">

@@ -5,10 +5,22 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Edit, X } from 'lucide-react'
 import PhotoUpload from '@/components/photo-upload'
 
-export default function UpdateChildForm({ child }: { child: any }) {
+type SizeOption = {
+  id: string
+  label: string
+}
+
+export default function UpdateChildForm({ child, sizeOptions = [] }: { child: any; sizeOptions?: SizeOption[] }) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -18,6 +30,8 @@ export default function UpdateChildForm({ child }: { child: any }) {
     weight: child.weight?.toString() || '',
     shoeSize: child.shoeSize || '',
     photo: child.photo || '',
+    currentSizeId: child.currentSizeId || '',
+    secondarySizeId: child.secondarySizeId || '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,6 +48,8 @@ export default function UpdateChildForm({ child }: { child: any }) {
           weight: formData.weight ? parseFloat(formData.weight) : null,
           shoeSize: formData.shoeSize || null,
           photo: formData.photo || null,
+          currentSizeId: formData.currentSizeId || null,
+          secondarySizeId: formData.secondarySizeId || null,
         }),
       })
 
@@ -113,6 +129,46 @@ export default function UpdateChildForm({ child }: { child: any }) {
           onChange={(value) => setFormData({ ...formData, photo: value })}
           label="Foto da Criança"
         />
+
+        <div className="space-y-2">
+          <Label>Tamanho atual</Label>
+          <Select
+            value={formData.currentSizeId}
+            onValueChange={(value) => setFormData({ ...formData, currentSizeId: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o tamanho atual" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Sem seleção</SelectItem>
+              {sizeOptions.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Tamanho adicional (acima/abaixo)</Label>
+          <Select
+            value={formData.secondarySizeId}
+            onValueChange={(value) => setFormData({ ...formData, secondarySizeId: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Opcional" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Sem seleção</SelectItem>
+              {sizeOptions.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {error && (
           <div className="text-sm text-red-600 bg-red-50 p-2 rounded">

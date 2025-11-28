@@ -61,6 +61,8 @@ export async function getAccessibleChildren(userId: string) {
           },
         },
       },
+      currentSize: true,
+      secondarySize: true,
     },
     orderBy: { createdAt: 'desc' },
   })

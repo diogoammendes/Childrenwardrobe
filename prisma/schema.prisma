@@ -113,11 +113,15 @@ model Child {
   weight        Float?   // em kg
   shoeSize      String?
   photo         String?  // URL ou base64 da foto
+  currentSizeId String?
+  secondarySizeId String?
   parentId      String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
   parent        User            @relation("ChildOwner", fields: [parentId], references: [id], onDelete: Cascade)
+  currentSize   SizeOption?     @relation("ChildCurrentSize", fields: [currentSizeId], references: [id])
+  secondarySize SizeOption?     @relation("ChildSecondarySize", fields: [secondarySizeId], references: [id])
   clothingItems ClothingItem[]
   categoryMinimums CategoryMinimum[]
   sharedWith    ChildSharedWith[]
@@ -142,6 +146,7 @@ model ClothingItem {
   category        ClothingCategory
   subcategory     String // JSON string para diferentes tipos de subcategorias
   size            String
+  sizeOptionId    String?
   colors          String // JSON array de cores
   photo           String? // URL da foto
   status          ItemStatus      @default(IN_USE)
@@ -153,6 +158,7 @@ model ClothingItem {
   updatedAt       DateTime        @updatedAt
   
   child           Child           @relation(fields: [childId], references: [id], onDelete: Cascade)
+  sizeOption      SizeOption?     @relation(fields: [sizeOptionId], references: [id])
   setItem         ClothingItem?   @relation("ClothingItemSet", fields: [setItemId], references: [id])
   setItems        ClothingItem[]  @relation("ClothingItemSet")
 }
@@ -169,5 +175,22 @@ model CategoryMinimum {
   child       Child           @relation(fields: [childId], references: [id], onDelete: Cascade)
   
   @@unique([childId, category, subcategory])
+}
+
+model SizeOption {
+  id          String   @id @default(cuid())
+  label       String
+  description String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clothingItems    ClothingItem[]
+  childrenCurrent  Child[] @relation("ChildCurrentSize")
+  childrenSecondary Child[] @relation("ChildSecondarySize")
+
+  @@unique([label])
+  @@index([order])
 }
 

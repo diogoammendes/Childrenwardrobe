@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, gender, birthDate, photo } = body
+    const { name, gender, birthDate, photo, currentSizeId, secondarySizeId } = body
 
     if (!name || !gender || !birthDate) {
       return NextResponse.json(
@@ -24,12 +24,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const sizeIds = [currentSizeId, secondarySizeId].filter(Boolean) as string[]
+    if (sizeIds.length > 0) {
+      const existingSizes = await prisma.sizeOption.findMany({
+        where: { id: { in: sizeIds } },
+        select: { id: true },
+      })
+      if (existingSizes.length !== sizeIds.length) {
+        return NextResponse.json(
+          { error: 'Tamanho selecionado inválido' },
+          { status: 400 }
+        )
+      }
+    }
+
     const child = await prisma.child.create({
       data: {
         name,
         gender,
         birthDate: new Date(birthDate),
         photo: photo || null,
+        currentSizeId: currentSizeId || null,
+        secondarySizeId: secondarySizeId || null,
         parentId: session.user.id,
       },
     })
@@ -69,6 +85,8 @@ export async function GET(request: NextRequest) {
               },
             },
           },
+          currentSize: true,
+          secondarySize: true,
         },
         orderBy: { createdAt: 'desc' },
       })

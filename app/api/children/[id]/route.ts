@@ -39,7 +39,22 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { height, weight, shoeSize, photo } = body
+    const { height, weight, shoeSize, photo, currentSizeId, secondarySizeId } = body
+
+    const sizeIds = [currentSizeId, secondarySizeId].filter(Boolean) as string[]
+    if (sizeIds.length > 0) {
+      const existing = await prisma.sizeOption.findMany({
+        where: { id: { in: sizeIds } },
+        select: { id: true },
+      })
+
+      if (existing.length !== sizeIds.length) {
+        return NextResponse.json(
+          { error: 'Tamanho selecionado inválido' },
+          { status: 400 }
+        )
+      }
+    }
 
     const updated = await prisma.child.update({
       where: { id: params.id },
@@ -48,6 +63,10 @@ export async function PATCH(
         weight: weight !== undefined ? weight : child.weight,
         shoeSize: shoeSize !== undefined ? shoeSize : child.shoeSize,
         photo: photo !== undefined ? photo : child.photo,
+        currentSizeId:
+          currentSizeId !== undefined ? (currentSizeId || null) : child.currentSizeId,
+        secondarySizeId:
+          secondarySizeId !== undefined ? (secondarySizeId || null) : child.secondarySizeId,
       },
     })
 

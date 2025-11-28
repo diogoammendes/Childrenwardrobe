@@ -17,7 +17,20 @@ import { Edit, Trash2, ArrowRight, ChevronDown, ChevronUp, Filter, X } from 'luc
 import EditClothingItemDialog from './edit-clothing-item-dialog'
 import TransferItemDialog from './transfer-item-dialog'
 
-export default function ClothingItemsList({ childId, items }: { childId: string; items: any[] }) {
+type SizeOption = {
+  id: string
+  label: string
+}
+
+export default function ClothingItemsList({
+  childId,
+  items,
+  sizeOptions = [],
+}: {
+  childId: string
+  items: any[]
+  sizeOptions?: SizeOption[]
+}) {
   const router = useRouter()
   const [editingItem, setEditingItem] = useState<any>(null)
   const [transferringItem, setTransferringItem] = useState<any>(null)
@@ -27,7 +40,8 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
   const [filters, setFilters] = useState({
     category: '',
     subcategory: '',
-    size: '',
+    sizeOptionId: '',
+    sizeText: '',
     colors: '',
     status: '',
     disposition: '',
@@ -67,9 +81,10 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       try {
-        if (filters.category && filters.category !== '__all__' && item.category !== filters.category) return false
-        if (filters.subcategory && filters.subcategory !== '__all__' && item.subcategory !== filters.subcategory) return false
-        if (filters.size && !item.size?.toLowerCase().includes(filters.size.toLowerCase())) return false
+        if (filters.category && item.category !== filters.category) return false
+        if (filters.subcategory && item.subcategory !== filters.subcategory) return false
+        if (filters.sizeOptionId && item.sizeOptionId !== filters.sizeOptionId) return false
+        if (filters.sizeText && !item.size?.toLowerCase().includes(filters.sizeText.toLowerCase())) return false
         if (filters.colors) {
           let colors: string[] = []
           try {
@@ -102,13 +117,14 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
     }, {} as Record<string, any[]>)
   }, [filteredItems])
 
-  const hasActiveFilters = Object.values(filters).some(v => v !== '' && v !== '__all__')
+  const hasActiveFilters = Object.values(filters).some((v) => v !== '')
 
   const clearFilters = () => {
     setFilters({
       category: '',
       subcategory: '',
-      size: '',
+      sizeOptionId: '',
+      sizeText: '',
       colors: '',
       status: '',
       disposition: '',
@@ -169,14 +185,14 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
               <Select
                 value={filters.category || undefined}
                 onValueChange={(value) => {
-                  setFilters({ ...filters, category: value || '', subcategory: '' })
+                  setFilters({ ...filters, category: value, subcategory: '' })
                 }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as categorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">Todas</SelectItem>
+                  <SelectItem value="">Todas</SelectItem>
                   {Object.entries(CLOTHING_CATEGORIES).map(([key, value]) => (
                     <SelectItem key={key} value={key}>
                       {value.label}
@@ -190,17 +206,40 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
               <Label htmlFor="filter-subcategory">Subcategoria</Label>
               <Select
                 value={filters.subcategory || undefined}
-                onValueChange={(value) => setFilters({ ...filters, subcategory: value || '' })}
+                onValueChange={(value) => setFilters({ ...filters, subcategory: value })}
                 disabled={!filters.category}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as subcategorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">Todas</SelectItem>
-                  {filters.category && Object.entries(getSubcategories(filters.category as ClothingCategory)).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label as string}
+                  <SelectItem value="">Todas</SelectItem>
+                  {filters.category &&
+                    Object.entries(getSubcategories(filters.category as ClothingCategory)).map(
+                      ([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label as string}
+                        </SelectItem>
+                      )
+                    )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="filter-size">Tamanho (lista)</Label>
+              <Select
+                value={filters.sizeOptionId || undefined}
+                onValueChange={(value) => setFilters({ ...filters, sizeOptionId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os tamanhos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {sizeOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -208,12 +247,12 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="filter-size">Tamanho</Label>
+              <Label htmlFor="filter-size-text">Tamanho (texto)</Label>
               <Input
-                id="filter-size"
-                value={filters.size}
-                onChange={(e) => setFilters({ ...filters, size: e.target.value })}
-                placeholder="Filtrar por tamanho"
+                id="filter-size-text"
+                value={filters.sizeText}
+                onChange={(e) => setFilters({ ...filters, sizeText: e.target.value })}
+                placeholder="Ex: 6-9 meses"
               />
             </div>
 
@@ -231,13 +270,13 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
               <Label htmlFor="filter-status">Estado</Label>
               <Select
                 value={filters.status || undefined}
-                onValueChange={(value) => setFilters({ ...filters, status: value || '' })}
+                onValueChange={(value) => setFilters({ ...filters, status: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os estados" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">Todos</SelectItem>
+                  <SelectItem value="">Todos</SelectItem>
                   <SelectItem value="IN_USE">Em uso</SelectItem>
                   <SelectItem value="FUTURE_USE">Uso futuro</SelectItem>
                   <SelectItem value="RETIRED">Retirado</SelectItem>
@@ -249,13 +288,13 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
               <Label htmlFor="filter-disposition">Disposição</Label>
               <Select
                 value={filters.disposition || undefined}
-                onValueChange={(value) => setFilters({ ...filters, disposition: value || '' })}
+                onValueChange={(value) => setFilters({ ...filters, disposition: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as disposições" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">Todas</SelectItem>
+                  <SelectItem value="">Todas</SelectItem>
                   <SelectItem value="KEEP">Manter</SelectItem>
                   <SelectItem value="SOLD">Vendido</SelectItem>
                   <SelectItem value="GIVEN_AWAY">Oferecido</SelectItem>
@@ -326,7 +365,9 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
                                     item.subcategory
                                   )}
                                 </p>
-                                <p className="text-sm text-gray-600">Tamanho: {item.size}</p>
+                                <p className="text-sm text-gray-600">
+                                  Tamanho: {item.sizeOption?.label || item.size || '—'}
+                                </p>
                               </div>
                               <div>
                                 <p className="text-sm text-gray-600">
@@ -398,6 +439,7 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
           item={editingItem}
           isOpen={!!editingItem}
           onClose={() => setEditingItem(null)}
+          sizeOptions={sizeOptions}
         />
       )}
 

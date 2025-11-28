@@ -14,7 +14,12 @@ import {
 } from '@/components/ui/select'
 import PhotoUpload from '@/components/photo-upload'
 
-export default function CreateChildForm() {
+type SizeOption = {
+  id: string
+  label: string
+}
+
+export default function CreateChildForm({ sizeOptions }: { sizeOptions: SizeOption[] }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -23,6 +28,8 @@ export default function CreateChildForm() {
     gender: '',
     birthDate: '',
     photo: '',
+    currentSizeId: '',
+    secondarySizeId: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +41,12 @@ export default function CreateChildForm() {
       const response = await fetch('/api/children', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          photo: formData.photo || null,
+          currentSizeId: formData.currentSizeId || null,
+          secondarySizeId: formData.secondarySizeId || null,
+        }),
       })
 
       if (!response.ok) {
@@ -98,6 +110,46 @@ export default function CreateChildForm() {
         onChange={(value) => setFormData({ ...formData, photo: value })}
         label="Foto da Criança"
       />
+
+      <div className="space-y-2">
+        <Label>Tamanho atual</Label>
+        <Select
+          value={formData.currentSizeId}
+          onValueChange={(value) => setFormData({ ...formData, currentSizeId: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o tamanho atual" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Sem seleção</SelectItem>
+            {sizeOptions.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Tamanho adicional (acima/abaixo)</Label>
+        <Select
+          value={formData.secondarySizeId}
+          onValueChange={(value) => setFormData({ ...formData, secondarySizeId: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Opcional: selecione um segundo tamanho" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Sem seleção</SelectItem>
+            {sizeOptions.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {error && (
         <div className="text-sm text-red-600 bg-red-50 p-3 rounded">

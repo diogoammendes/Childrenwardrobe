@@ -1,11 +1,20 @@
 'use client'
 
 import Link from 'next/link'
-import { useSession, signOut } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
-import { Home, LogOut, User, Shield } from 'lucide-react'
+import { LogOut, User, Shield } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+const navLinks = [
+  { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/sizes', label: 'Tamanhos' },
+]
 
 export default function AdminNav({ user }: { user: { name?: string | null; email: string } }) {
+  const pathname = usePathname()
+
   return (
     <nav className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4">
@@ -19,14 +28,27 @@ export default function AdminNav({ user }: { user: { name?: string | null; email
               <User className="h-4 w-4" />
               <span>{user.name || user.email}</span>
             </div>
-            <Button
-              variant="ghost"
-              onClick={() => signOut({ callbackUrl: '/' })}
-            >
+            <Button variant="ghost" onClick={() => signOut({ callbackUrl: '/' })}>
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
           </div>
+        </div>
+        <div className="flex space-x-4 pb-3">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                'text-sm font-medium px-2 py-1 border-b-2 transition-colors',
+                pathname === link.href
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-800'
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       </div>
     </nav>

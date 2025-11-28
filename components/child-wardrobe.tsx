@@ -7,14 +7,21 @@ import AddClothingItemDialog from './add-clothing-item-dialog'
 import ClothingItemsList from './clothing-items-list'
 import CategoryMinimums from './category-minimums'
 
+type SizeOption = {
+  id: string
+  label: string
+}
+
 export default function ChildWardrobe({ 
   childId, 
   items,
-  minimums = []
+  minimums = [],
+  sizeOptions = [],
 }: { 
   childId: string
   items: any[]
   minimums?: any[]
+  sizeOptions?: SizeOption[]
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
@@ -35,11 +42,12 @@ export default function ChildWardrobe({
             Adicionar Peça
           </Button>
         </div>
-        <ClothingItemsList childId={childId} items={items} />
+        <ClothingItemsList childId={childId} items={items} sizeOptions={sizeOptions} />
       </div>
 
       <AddClothingItemDialog
         childId={childId}
+        sizeOptions={sizeOptions}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
       />

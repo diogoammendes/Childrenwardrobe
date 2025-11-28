@@ -44,6 +44,7 @@ export async function PATCH(
       category,
       subcategory,
       size,
+      sizeOptionId,
       colors,
       photo,
       status,
@@ -74,12 +75,41 @@ export async function PATCH(
       }
     }
 
+    let nextSizeLabel = item.size
+    let nextSizeOptionId = item.sizeOptionId
+
+    if (sizeOptionId !== undefined) {
+      if (sizeOptionId === null || sizeOptionId === '') {
+        nextSizeOptionId = null
+        if (size !== undefined && size.trim() !== '') {
+          nextSizeLabel = size
+        }
+      } else {
+        const option = await prisma.sizeOption.findUnique({
+          where: { id: sizeOptionId },
+        })
+
+        if (!option) {
+          return NextResponse.json(
+            { error: 'Tamanho selecionado não é válido' },
+            { status: 400 }
+          )
+        }
+
+        nextSizeOptionId = option.id
+        nextSizeLabel = option.label
+      }
+    } else if (size !== undefined) {
+      nextSizeLabel = size
+    }
+
     const updated = await prisma.clothingItem.update({
       where: { id: params.id },
       data: {
         category: category !== undefined ? category : item.category,
         subcategory: subcategory !== undefined ? subcategory : item.subcategory,
-        size: size !== undefined ? size : item.size,
+        size: nextSizeLabel,
+        sizeOptionId: nextSizeOptionId,
         colors: colors !== undefined ? JSON.stringify(colors) : item.colors,
         photo: photo !== undefined ? photo : item.photo,
         status: status !== undefined ? status : item.status,
