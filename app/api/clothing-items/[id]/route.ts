@@ -52,6 +52,28 @@ export async function PATCH(
       setItemId,
     } = body
 
+    // Normalizar setItemId: string vazia ou null vira null
+    let normalizedSetItemId: string | null = null
+    if (setItemId !== undefined) {
+      normalizedSetItemId = setItemId && setItemId.trim() !== '' ? setItemId : null
+    } else {
+      normalizedSetItemId = item.setItemId
+    }
+
+    // Se setItemId foi fornecido, validar que o item existe
+    if (normalizedSetItemId !== null) {
+      const setItem = await prisma.clothingItem.findUnique({
+        where: { id: normalizedSetItemId },
+      })
+      
+      if (!setItem) {
+        return NextResponse.json(
+          { error: 'Item do conjunto não encontrado' },
+          { status: 400 }
+        )
+      }
+    }
+
     const updated = await prisma.clothingItem.update({
       where: { id: params.id },
       data: {
@@ -63,7 +85,7 @@ export async function PATCH(
         status: status !== undefined ? status : item.status,
         disposition: disposition !== undefined ? disposition : item.disposition,
         isSet: isSet !== undefined ? isSet : item.isSet,
-        setItemId: setItemId !== undefined ? setItemId : item.setItemId,
+        setItemId: normalizedSetItemId,
       },
     })
 

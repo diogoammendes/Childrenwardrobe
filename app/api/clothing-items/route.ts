@@ -46,6 +46,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Normalizar setItemId: string vazia ou null vira null
+    const normalizedSetItemId = setItemId && setItemId.trim() !== '' ? setItemId : null
+
+    // Se setItemId foi fornecido, validar que o item existe
+    if (normalizedSetItemId !== null) {
+      const setItem = await prisma.clothingItem.findUnique({
+        where: { id: normalizedSetItemId },
+      })
+      
+      if (!setItem) {
+        return NextResponse.json(
+          { error: 'Item do conjunto não encontrado' },
+          { status: 400 }
+        )
+      }
+    }
+
     const item = await prisma.clothingItem.create({
       data: {
         category,
@@ -56,7 +73,7 @@ export async function POST(request: NextRequest) {
         status: status || 'IN_USE',
         disposition: disposition || 'KEEP',
         isSet: isSet || false,
-        setItemId: setItemId || null,
+        setItemId: normalizedSetItemId,
         childId,
       },
     })
