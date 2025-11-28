@@ -40,6 +40,10 @@ export default async function ChildPage({
       secondarySize: true,
     },
   })
+  if (!child) {
+    redirect('/dashboard')
+  }
+
   const sizeOptions = await prisma.sizeOption.findMany({
     where: { isActive: true },
     orderBy: { order: 'asc' },
@@ -58,10 +62,6 @@ export default async function ChildPage({
     sizeOptions,
     categoryMinimums: child.categoryMinimums,
   })
-
-  if (!child) {
-    redirect('/dashboard')
-  }
 
   // Verificar se o utilizador tem acesso a esta criança
   if (session.user.role === 'PARENT') {
