@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Images } from 'lucide-react'
+import { Plus, Image } from 'lucide-react'
 import AddClothingItemDialog from './add-clothing-item-dialog'
 import AddMultipleClothingItemsDialog from './add-multiple-clothing-items-dialog'
 import ClothingItemsList from './clothing-items-list'
@@ -70,7 +70,7 @@ export default function ChildWardrobe({
               onClick={() => setIsMultipleDialogOpen(true)}
               className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
             >
-              <Images className="mr-2 h-4 w-4" />
+              <Image className="mr-2 h-4 w-4" />
               Adicionar Múltiplas
             </Button>
           </div>
