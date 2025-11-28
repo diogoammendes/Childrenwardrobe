@@ -112,6 +112,7 @@ model Child {
   height        Float?   // em cm
   weight        Float?   // em kg
   shoeSize      String?
+  photo         String?  // URL ou base64 da foto
   parentId      String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

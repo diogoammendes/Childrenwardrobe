@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, gender, birthDate } = body
+    const { name, gender, birthDate, photo } = body
 
     if (!name || !gender || !birthDate) {
       return NextResponse.json(
@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
         name,
         gender,
         birthDate: new Date(birthDate),
+        photo: photo || null,
         parentId: session.user.id,
       },
     })

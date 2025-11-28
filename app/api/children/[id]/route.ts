@@ -39,7 +39,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { height, weight, shoeSize } = body
+    const { height, weight, shoeSize, photo } = body
 
     const updated = await prisma.child.update({
       where: { id: params.id },
@@ -47,6 +47,7 @@ export async function PATCH(
         height: height !== undefined ? height : child.height,
         weight: weight !== undefined ? weight : child.weight,
         shoeSize: shoeSize !== undefined ? shoeSize : child.shoeSize,
+        photo: photo !== undefined ? photo : child.photo,
       },
     })
 

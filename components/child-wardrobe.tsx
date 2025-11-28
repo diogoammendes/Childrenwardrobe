@@ -3,10 +3,20 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import AddClothingItemDialog from './add-clothing-item-dialog'
 import ClothingItemsList from './clothing-items-list'
+import CategoryMinimums from './category-minimums'
 
-export default function ChildWardrobe({ childId, items }: { childId: string; items: any[] }) {
+export default function ChildWardrobe({ 
+  childId, 
+  items,
+  minimums = []
+}: { 
+  childId: string
+  items: any[]
+  minimums?: any[]
+}) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   return (
@@ -19,7 +29,20 @@ export default function ChildWardrobe({ childId, items }: { childId: string; ite
         </Button>
       </div>
 
-      <ClothingItemsList childId={childId} items={items} />
+      <Tabs defaultValue="items" className="w-full">
+        <TabsList>
+          <TabsTrigger value="items">Peças de Roupa</TabsTrigger>
+          <TabsTrigger value="minimums">Mínimos por Categoria</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="items">
+          <ClothingItemsList childId={childId} items={items} />
+        </TabsContent>
+        
+        <TabsContent value="minimums">
+          <CategoryMinimums childId={childId} minimums={minimums} />
+        </TabsContent>
+      </Tabs>
 
       <AddClothingItemDialog
         childId={childId}

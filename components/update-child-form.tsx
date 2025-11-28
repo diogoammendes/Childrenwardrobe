@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Edit, X } from 'lucide-react'
+import PhotoUpload from '@/components/photo-upload'
 
 export default function UpdateChildForm({ child }: { child: any }) {
   const router = useRouter()
@@ -16,6 +17,7 @@ export default function UpdateChildForm({ child }: { child: any }) {
     height: child.height?.toString() || '',
     weight: child.weight?.toString() || '',
     shoeSize: child.shoeSize || '',
+    photo: child.photo || '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,6 +33,7 @@ export default function UpdateChildForm({ child }: { child: any }) {
           height: formData.height ? parseFloat(formData.height) : null,
           weight: formData.weight ? parseFloat(formData.weight) : null,
           shoeSize: formData.shoeSize || null,
+          photo: formData.photo || null,
         }),
       })
 
@@ -104,6 +107,12 @@ export default function UpdateChildForm({ child }: { child: any }) {
             placeholder="Ex: 28"
           />
         </div>
+
+        <PhotoUpload
+          value={formData.photo}
+          onChange={(value) => setFormData({ ...formData, photo: value })}
+          label="Foto da Criança"
+        />
 
         {error && (
           <div className="text-sm text-red-600 bg-red-50 p-2 rounded">

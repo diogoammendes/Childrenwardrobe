@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import PhotoUpload from '@/components/photo-upload'
 
 export default function CreateChildForm() {
   const router = useRouter()
@@ -21,6 +22,7 @@ export default function CreateChildForm() {
     name: '',
     gender: '',
     birthDate: '',
+    photo: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,6 +92,12 @@ export default function CreateChildForm() {
           required
         />
       </div>
+
+      <PhotoUpload
+        value={formData.photo}
+        onChange={(value) => setFormData({ ...formData, photo: value })}
+        label="Foto da Criança"
+      />
 
       {error && (
         <div className="text-sm text-red-600 bg-red-50 p-3 rounded">

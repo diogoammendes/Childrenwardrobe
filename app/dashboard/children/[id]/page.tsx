@@ -59,15 +59,26 @@ export default async function ChildPage({
           ← Voltar
         </Link>
         <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">{child.name}</h1>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p><span className="font-medium">Idade:</span> {age} anos</p>
-              <p><span className="font-medium">Género:</span> {child.gender}</p>
-              <p><span className="font-medium">Data de nascimento:</span> {new Date(child.birthDate).toLocaleDateString('pt-PT')}</p>
-              {child.height && <p><span className="font-medium">Altura:</span> {child.height} cm</p>}
-              {child.weight && <p><span className="font-medium">Peso:</span> {child.weight} kg</p>}
-              {child.shoeSize && <p><span className="font-medium">Tamanho de sapato:</span> {child.shoeSize}</p>}
+          <div className="flex space-x-4">
+            {child.photo && (
+              <div className="flex-shrink-0">
+                <img
+                  src={child.photo}
+                  alt={child.name}
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                />
+              </div>
+            )}
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">{child.name}</h1>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p><span className="font-medium">Idade:</span> {age} anos</p>
+                <p><span className="font-medium">Género:</span> {child.gender}</p>
+                <p><span className="font-medium">Data de nascimento:</span> {new Date(child.birthDate).toLocaleDateString('pt-PT')}</p>
+                {child.height && <p><span className="font-medium">Altura:</span> {child.height} cm</p>}
+                {child.weight && <p><span className="font-medium">Peso:</span> {child.weight} kg</p>}
+                {child.shoeSize && <p><span className="font-medium">Tamanho de sapato:</span> {child.shoeSize}</p>}
+              </div>
             </div>
           </div>
           <div className="flex space-x-2">
@@ -77,11 +88,11 @@ export default async function ChildPage({
         </div>
       </div>
 
-      <div className="mb-6">
-        <CategoryMinimums childId={child.id} minimums={child.categoryMinimums} />
-      </div>
-
-      <ChildWardrobe childId={child.id} items={child.clothingItems} />
+      <ChildWardrobe 
+        childId={child.id} 
+        items={child.clothingItems}
+        minimums={child.categoryMinimums}
+      />
     </div>
   )
 }
