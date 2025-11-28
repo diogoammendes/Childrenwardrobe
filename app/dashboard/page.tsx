@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Plus, Users } from 'lucide-react'
+import { Plus, Users, Share2 } from 'lucide-react'
+import { getAccessibleChildren } from '@/lib/child-access'
 
 export default async function DashboardPage() {
   const session = await getServerSession()
@@ -12,10 +13,14 @@ export default async function DashboardPage() {
     redirect('/')
   }
 
-  const children = await prisma.child.findMany({
-    where: { parentId: session.user.id },
-    orderBy: { createdAt: 'desc' },
-  })
+  const children = session.user.role === 'ADMIN'
+    ? await prisma.child.findMany({
+        include: {
+          parent: { select: { name: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+    : await getAccessibleChildren(session.user.id)
 
   return (
     <div>
@@ -44,20 +49,30 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {children.map((child) => {
+          {children.map((child: any) => {
             const age = Math.floor(
               (new Date().getTime() - new Date(child.birthDate).getTime()) /
                 (1000 * 60 * 60 * 24 * 365.25)
             )
+            const isOwner = child.parentId === session.user.id
+            const isShared = !isOwner && session.user.role === 'PARENT'
             return (
               <Link
                 key={child.id}
                 href={`/dashboard/children/${child.id}`}
                 className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6"
               >
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  {child.name}
-                </h2>
+                <div className="flex items-start justify-between mb-2">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {child.name}
+                  </h2>
+                  {isShared && (
+                    <span className="flex items-center text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      <Share2 className="h-3 w-3 mr-1" />
+                      Partilhada
+                    </span>
+                  )}
+                </div>
                 <div className="space-y-1 text-sm text-gray-600">
                   <p>
                     <span className="font-medium">Idade:</span> {age} anos
