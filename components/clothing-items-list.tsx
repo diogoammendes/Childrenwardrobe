@@ -66,17 +66,28 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
   // Filtrar items
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      if (filters.category && item.category !== filters.category) return false
-      if (filters.subcategory && item.subcategory !== filters.subcategory) return false
-      if (filters.size && !item.size.toLowerCase().includes(filters.size.toLowerCase())) return false
-      if (filters.colors) {
-        const colors = JSON.parse(item.colors || '[]')
-        const searchColors = filters.colors.toLowerCase()
-        if (!colors.some((c: string) => c.toLowerCase().includes(searchColors))) return false
+      try {
+        if (filters.category && filters.category !== '__all__' && item.category !== filters.category) return false
+        if (filters.subcategory && filters.subcategory !== '__all__' && item.subcategory !== filters.subcategory) return false
+        if (filters.size && !item.size?.toLowerCase().includes(filters.size.toLowerCase())) return false
+        if (filters.colors) {
+          let colors: string[] = []
+          try {
+            colors = JSON.parse(item.colors || '[]')
+          } catch {
+            // Se falhar o parse, assume array vazio
+            colors = []
+          }
+          const searchColors = filters.colors.toLowerCase()
+          if (!colors.some((c: string) => c?.toLowerCase().includes(searchColors))) return false
+        }
+        if (filters.status && filters.status !== '__all__' && item.status !== filters.status) return false
+        if (filters.disposition && filters.disposition !== '__all__' && item.disposition !== filters.disposition) return false
+        return true
+      } catch (error) {
+        console.error('Erro ao filtrar item:', error, item)
+        return false
       }
-      if (filters.status && item.status !== filters.status) return false
-      if (filters.disposition && item.disposition !== filters.disposition) return false
-      return true
     })
   }, [items, filters])
 
@@ -91,7 +102,7 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
     }, {} as Record<string, any[]>)
   }, [filteredItems])
 
-  const hasActiveFilters = Object.values(filters).some(v => v !== '')
+  const hasActiveFilters = Object.values(filters).some(v => v !== '' && v !== '__all__')
 
   const clearFilters = () => {
     setFilters({
@@ -156,16 +167,16 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
             <div className="space-y-2">
               <Label htmlFor="filter-category">Categoria</Label>
               <Select
-                value={filters.category}
+                value={filters.category || undefined}
                 onValueChange={(value) => {
-                  setFilters({ ...filters, category: value, subcategory: '' })
+                  setFilters({ ...filters, category: value || '', subcategory: '' })
                 }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as categorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="__all__">Todas</SelectItem>
                   {Object.entries(CLOTHING_CATEGORIES).map(([key, value]) => (
                     <SelectItem key={key} value={key}>
                       {value.label}
@@ -178,15 +189,15 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
             <div className="space-y-2">
               <Label htmlFor="filter-subcategory">Subcategoria</Label>
               <Select
-                value={filters.subcategory}
-                onValueChange={(value) => setFilters({ ...filters, subcategory: value })}
+                value={filters.subcategory || undefined}
+                onValueChange={(value) => setFilters({ ...filters, subcategory: value || '' })}
                 disabled={!filters.category}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as subcategorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="__all__">Todas</SelectItem>
                   {filters.category && Object.entries(getSubcategories(filters.category as ClothingCategory)).map(([key, label]) => (
                     <SelectItem key={key} value={key}>
                       {label as string}
@@ -219,14 +230,14 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
             <div className="space-y-2">
               <Label htmlFor="filter-status">Estado</Label>
               <Select
-                value={filters.status}
-                onValueChange={(value) => setFilters({ ...filters, status: value })}
+                value={filters.status || undefined}
+                onValueChange={(value) => setFilters({ ...filters, status: value || '' })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os estados" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="__all__">Todos</SelectItem>
                   <SelectItem value="IN_USE">Em uso</SelectItem>
                   <SelectItem value="FUTURE_USE">Uso futuro</SelectItem>
                   <SelectItem value="RETIRED">Retirado</SelectItem>
@@ -237,14 +248,14 @@ export default function ClothingItemsList({ childId, items }: { childId: string;
             <div className="space-y-2">
               <Label htmlFor="filter-disposition">Disposição</Label>
               <Select
-                value={filters.disposition}
-                onValueChange={(value) => setFilters({ ...filters, disposition: value })}
+                value={filters.disposition || undefined}
+                onValueChange={(value) => setFilters({ ...filters, disposition: value || '' })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as disposições" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="__all__">Todas</SelectItem>
                   <SelectItem value="KEEP">Manter</SelectItem>
                   <SelectItem value="SOLD">Vendido</SelectItem>
                   <SelectItem value="GIVEN_AWAY">Oferecido</SelectItem>
