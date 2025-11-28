@@ -49,7 +49,7 @@ export default async function ChildPage({
     orderBy: { order: 'asc' },
   })
 
-  const sizeLabelMap = new Map(sizeOptions.map((option) => [option.id, option.label]))
+  const sizeLabelMap = new Map(sizeOptions.map((option: { id: string; label: string }) => [option.id, option.label]))
   const currentSizeLabel =
     child.currentSize?.label || (child.currentSizeId ? sizeLabelMap.get(child.currentSizeId) : null)
   const secondarySizeLabel =
@@ -79,43 +79,87 @@ export default async function ChildPage({
   )
 
   return (
-    <div>
-      <div className="mb-6">
-        <Link href="/dashboard" className="text-blue-600 hover:underline mb-4 inline-block">
-          ← Voltar
+    <div className="min-h-screen pb-12">
+      <div className="mb-8">
+        <Link 
+          href="/dashboard" 
+          className="inline-flex items-center text-indigo-600 hover:text-indigo-700 mb-6 font-medium transition-colors group"
+        >
+          <svg className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Voltar para o dashboard
         </Link>
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex space-x-4">
+        
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 h-32 relative">
             {child.photo && (
-              <div className="flex-shrink-0">
-                <img
-                  src={child.photo}
-                  alt={child.name}
-                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-                />
+              <div className="absolute bottom-0 left-8 transform translate-y-1/2">
+                <div className="w-32 h-32 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white">
+                  <img
+                    src={child.photo}
+                    alt={child.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             )}
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">{child.name}</h1>
-              <div className="space-y-1 text-sm text-gray-600">
-                <p><span className="font-medium">Idade:</span> {age} anos</p>
-                <p><span className="font-medium">Género:</span> {child.gender}</p>
-                <p><span className="font-medium">Data de nascimento:</span> {new Date(child.birthDate).toLocaleDateString('pt-PT')}</p>
-                {child.height && <p><span className="font-medium">Altura:</span> {child.height} cm</p>}
-                {child.weight && <p><span className="font-medium">Peso:</span> {child.weight} kg</p>}
-                {child.shoeSize && <p><span className="font-medium">Tamanho de sapato:</span> {child.shoeSize}</p>}
-                {currentSizeLabel && (
-                  <p><span className="font-medium">Tamanho atual:</span> {currentSizeLabel}</p>
-                )}
-                {secondarySizeLabel && (
-                  <p><span className="font-medium">Tamanho adicional:</span> {secondarySizeLabel}</p>
+          </div>
+          
+          <div className="pt-20 pb-6 px-8">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+                  {child.name}
+                </h1>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100">
+                    <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Idade</p>
+                    <p className="text-lg font-bold text-gray-800">{age} anos</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-100">
+                    <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Género</p>
+                    <p className="text-lg font-bold text-gray-800">{child.gender}</p>
+                  </div>
+                  {child.height && (
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-3 border border-green-100">
+                      <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Altura</p>
+                      <p className="text-lg font-bold text-gray-800">{child.height} cm</p>
+                    </div>
+                  )}
+                  {child.weight && (
+                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-3 border border-orange-100">
+                      <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Peso</p>
+                      <p className="text-lg font-bold text-gray-800">{child.weight} kg</p>
+                    </div>
+                  )}
+                </div>
+                {(currentSizeLabel || secondarySizeLabel) && (
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {currentSizeLabel && (
+                      <div className="inline-flex items-center px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Tamanho atual: {currentSizeLabel}
+                      </div>
+                    )}
+                    {secondarySizeLabel && (
+                      <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                        Tamanho adicional: {secondarySizeLabel}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
+              <div className="flex space-x-2 ml-6">
+                {isOwner && <ShareChildButton childId={child.id} />}
+                <UpdateChildForm child={child} sizeOptions={sizeOptions} />
+              </div>
             </div>
-          </div>
-          <div className="flex space-x-2">
-            {isOwner && <ShareChildButton childId={child.id} />}
-            <UpdateChildForm child={child} sizeOptions={sizeOptions} />
           </div>
         </div>
       </div>

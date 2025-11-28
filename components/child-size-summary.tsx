@@ -43,56 +43,70 @@ export default function ChildSizeSummary({ summary }: ChildSizeSummaryProps) {
   ) as SizeSummarySection[]
 
   return (
-    <div className="space-y-4 mb-8">
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
+    <div className="space-y-6 mb-8">
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Resumo por tamanho</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+              Resumo por tamanho
+            </h2>
+            <p className="text-gray-600">
               Visão geral das peças por tamanho atual e tamanhos relacionados.
             </p>
           </div>
         </div>
         {sections.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            Selecione o tamanho atual desta criança para consultar o resumo.
-          </p>
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <p className="text-gray-600 font-medium">
+              Selecione o tamanho atual desta criança para consultar o resumo.
+            </p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {sections.map((section) => (
-              <div key={section.title} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
+              <div 
+                key={section.title} 
+                className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all duration-200"
+              >
+                <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm uppercase text-gray-500">{section.title}</p>
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <p className="text-xs uppercase text-gray-500 font-semibold tracking-wide mb-1">{section.title}</p>
+                    <h3 className="text-xl font-bold text-gray-800">
                       {section.sizeLabel}
                     </h3>
                   </div>
-                  <Badge variant="secondary">{section.stats.total} peças</Badge>
+                  <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 px-3 py-1 text-sm font-semibold">
+                    {section.stats.total} peças
+                  </Badge>
                 </div>
                 {section.helperText && (
-                  <p className="text-xs text-gray-500 mb-2">{section.helperText}</p>
+                  <p className="text-xs text-gray-500 mb-4 bg-gray-50 px-3 py-2 rounded-lg">{section.helperText}</p>
                 )}
-                <dl className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                  <div>
-                    <dt className="text-gray-500">Em uso</dt>
-                    <dd className="font-semibold text-gray-900">{section.stats.inUse}</dd>
+                <dl className="grid grid-cols-2 gap-3">
+                  <div className="bg-green-50 rounded-lg p-3 border border-green-100">
+                    <dt className="text-xs text-gray-600 mb-1">Em uso</dt>
+                    <dd className="text-2xl font-bold text-green-700">{section.stats.inUse}</dd>
                   </div>
-                  <div>
-                    <dt className="text-gray-500">Uso futuro</dt>
-                    <dd className="font-semibold text-gray-900">{section.stats.futureUse}</dd>
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                    <dt className="text-xs text-gray-600 mb-1">Uso futuro</dt>
+                    <dd className="text-2xl font-bold text-blue-700">{section.stats.futureUse}</dd>
                   </div>
-                  <div>
-                    <dt className="text-gray-500">Retirado</dt>
-                    <dd className="font-semibold text-gray-900">{section.stats.retired}</dd>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <dt className="text-xs text-gray-600 mb-1">Retirado</dt>
+                    <dd className="text-2xl font-bold text-gray-700">{section.stats.retired}</dd>
                   </div>
-                  <div>
-                    <dt className="text-gray-500">Vendido</dt>
-                    <dd className="font-semibold text-gray-900">{section.stats.sold}</dd>
+                  <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-100">
+                    <dt className="text-xs text-gray-600 mb-1">Vendido</dt>
+                    <dd className="text-2xl font-bold text-yellow-700">{section.stats.sold}</dd>
                   </div>
-                  <div>
-                    <dt className="text-gray-500">Oferecido</dt>
-                    <dd className="font-semibold text-gray-900">{section.stats.givenAway}</dd>
+                  <div className="bg-orange-50 rounded-lg p-3 border border-orange-100 col-span-2">
+                    <dt className="text-xs text-gray-600 mb-1">Oferecido</dt>
+                    <dd className="text-2xl font-bold text-orange-700">{section.stats.givenAway}</dd>
                   </div>
                 </dl>
               </div>
@@ -101,28 +115,49 @@ export default function ChildSizeSummary({ summary }: ChildSizeSummaryProps) {
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-3">Categorias abaixo do mínimo</h3>
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6">
+        <div className="flex items-center mb-4">
+          <div className="p-2 bg-red-100 rounded-lg mr-3">
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800">Categorias abaixo do mínimo</h3>
+        </div>
         {summary.belowMinimum.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            Sem alertas para os tamanhos selecionados.
-          </p>
+          <div className="text-center py-8">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-gray-600 font-medium">
+              Sem alertas para os tamanhos selecionados.
+            </p>
+          </div>
         ) : (
           <ul className="space-y-3">
             {summary.belowMinimum.map((entry) => (
               <li
                 key={entry.id}
-                className="flex items-center justify-between border rounded-lg p-3"
+                className="flex items-center justify-between bg-red-50 border-2 border-red-200 rounded-xl p-4 hover:bg-red-100 transition-colors"
               >
-                <div>
-                  <p className="font-semibold text-gray-800">{entry.categoryLabel}</p>
-                  <p className="text-sm text-gray-600">{entry.subcategoryLabel}</p>
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-200 rounded-lg">
+                    <svg className="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-800">{entry.categoryLabel}</p>
+                    <p className="text-sm text-gray-600">{entry.subcategoryLabel}</p>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-700 font-medium">
                     {entry.available}/{entry.required} peças
                   </p>
-                  <p className="text-xs text-red-600 font-medium">
+                  <p className="text-sm text-red-700 font-bold">
                     Faltam {entry.required - entry.available}
                   </p>
                 </div>
