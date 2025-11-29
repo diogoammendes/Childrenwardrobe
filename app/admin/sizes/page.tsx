@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import SizeOptionsManager from '@/components/size-options-manager'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminSizesPage() {
   const session = await getServerSession()
 

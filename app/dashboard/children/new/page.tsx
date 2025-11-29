@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import CreateChildForm from '@/components/create-child-form'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 export default async function NewChildPage() {
   const session = await getServerSession()
   

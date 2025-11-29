@@ -14,6 +14,8 @@ import ChildSizeSummary, {
 import { hasChildAccess } from '@/lib/child-access'
 import { CLOTHING_CATEGORIES, getSubcategoryLabel, getCategoryLabel, type ClothingCategory } from '@/lib/clothing-categories'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ChildPage({
   params,
 }: {

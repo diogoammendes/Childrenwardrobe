@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Plus, Users, Share2 } from 'lucide-react'
 import { getAccessibleChildren } from '@/lib/child-access'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const session = await getServerSession()
   

@@ -2,6 +2,8 @@ import { getServerSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import CreateUserForm from '@/components/create-user-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function NewUserPage() {
   const session = await getServerSession()
   

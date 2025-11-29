@@ -8,6 +8,8 @@ import { hasRole } from '@/lib/auth-helpers'
 import UsersTable from '@/components/users-table'
 import AppConfigSection from '@/components/app-config-section'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPage() {
   const session = await getServerSession()
   
