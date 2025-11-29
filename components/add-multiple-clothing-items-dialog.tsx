@@ -52,7 +52,7 @@ export default function AddMultipleClothingItemsDialog({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   
-  const [step, setStep] = useState<'category' | 'photos' | 'review'>('category')
+  const [step, setStep] = useState<'category' | 'prefill' | 'photos' | 'review'>('category')
   const [category, setCategory] = useState<ClothingCategory | ''>('')
   const [photos, setPhotos] = useState<string[]>([])
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([])
@@ -60,6 +60,16 @@ export default function AddMultipleClothingItemsDialog({
   const [error, setError] = useState('')
   const [creatingItems, setCreatingItems] = useState<Set<string>>(new Set())
   const [discardedItems, setDiscardedItems] = useState<Set<string>>(new Set())
+  
+  // Campos pré-preenchidos (opcionais)
+  const [prefillData, setPrefillData] = useState({
+    subcategory: '',
+    sizeOptionId: '__none__',
+    size: '',
+    colors: '',
+    status: 'IN_USE' as 'RETIRED' | 'IN_USE' | 'FUTURE_USE',
+    disposition: 'KEEP' as 'KEEP' | 'SOLD' | 'GIVEN_AWAY',
+  })
 
   const subcategories = category ? getSubcategories(category) : {}
 
@@ -68,6 +78,14 @@ export default function AddMultipleClothingItemsDialog({
       setError('Selecione uma categoria')
       return
     }
+    // Resetar subcategoria quando mudar de categoria
+    setPrefillData(prev => ({ ...prev, subcategory: '' }))
+    setStep('prefill')
+    setError('')
+  }
+
+  const handlePrefillContinue = () => {
+    // Pode avançar mesmo sem preencher nada - tudo é opcional
     setStep('photos')
     setError('')
   }
@@ -112,16 +130,16 @@ export default function AddMultipleClothingItemsDialog({
       return
     }
 
-    // Criar items pendentes com valores padrão
+    // Criar items pendentes com valores pré-preenchidos (ou padrão se não preenchidos)
     const items: PendingItem[] = photos.map((photo, index) => ({
       id: `pending-${Date.now()}-${index}`,
       photo,
-      subcategory: '',
-      sizeOptionId: '',
-      size: '',
-      colors: '',
-      status: 'IN_USE',
-      disposition: 'KEEP',
+      subcategory: prefillData.subcategory || '',
+      sizeOptionId: prefillData.sizeOptionId !== '__none__' ? prefillData.sizeOptionId : '',
+      size: prefillData.size || '',
+      colors: prefillData.colors || '',
+      status: prefillData.status,
+      disposition: prefillData.disposition,
     }))
 
     setPendingItems(items)
@@ -216,6 +234,14 @@ export default function AddMultipleClothingItemsDialog({
     setError('')
     setCreatingItems(new Set())
     setDiscardedItems(new Set())
+    setPrefillData({
+      subcategory: '',
+      sizeOptionId: '__none__',
+      size: '',
+      colors: '',
+      status: 'IN_USE',
+      disposition: 'KEEP',
+    })
     onClose()
   }
 
@@ -230,6 +256,7 @@ export default function AddMultipleClothingItemsDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {step === 'category' && 'Adicionar Múltiplas Peças'}
+            {step === 'prefill' && 'Preencher Campos (Opcional)'}
             {step === 'photos' && 'Adicionar Fotos'}
             {step === 'review' && 'Revisão e Criação'}
           </DialogTitle>
@@ -274,6 +301,145 @@ export default function AddMultipleClothingItemsDialog({
                 >
                   Continuar
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 'prefill' && (
+            <div className="space-y-6 py-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Opcional:</strong> Pode preencher estes campos agora e serão aplicados a todas as peças. 
+                  Pode também deixar em branco e preencher individualmente na revisão.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="prefill-subcategory">Subcategoria</Label>
+                  <Select
+                    value={prefillData.subcategory}
+                    onValueChange={(value) =>
+                      setPrefillData({ ...prefillData, subcategory: value })
+                    }
+                  >
+                    <SelectTrigger id="prefill-subcategory">
+                      <SelectValue placeholder="Opcional - selecione a subcategoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(subcategories).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label as string}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prefill-size-option">Tamanho (lista)</Label>
+                  <Select
+                    value={prefillData.sizeOptionId}
+                    onValueChange={(value) =>
+                      setPrefillData({ ...prefillData, sizeOptionId: value })
+                    }
+                  >
+                    <SelectTrigger id="prefill-size-option">
+                      <SelectValue placeholder="Opcional" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Sem tamanho</SelectItem>
+                      {sizeOptions.map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prefill-size">Tamanho (texto livre)</Label>
+                  <Input
+                    id="prefill-size"
+                    value={prefillData.size}
+                    onChange={(e) =>
+                      setPrefillData({ ...prefillData, size: e.target.value })
+                    }
+                    placeholder="Opcional - Ex: 2 anos, 86, M"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prefill-colors">Cores (separadas por vírgula)</Label>
+                  <Input
+                    id="prefill-colors"
+                    value={prefillData.colors}
+                    onChange={(e) =>
+                      setPrefillData({ ...prefillData, colors: e.target.value })
+                    }
+                    placeholder="Opcional - Ex: Azul, Branco"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="prefill-status">Estado</Label>
+                    <Select
+                      value={prefillData.status}
+                      onValueChange={(value: any) =>
+                        setPrefillData({ ...prefillData, status: value })
+                      }
+                    >
+                      <SelectTrigger id="prefill-status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="IN_USE">Em uso</SelectItem>
+                        <SelectItem value="FUTURE_USE">Uso futuro</SelectItem>
+                        <SelectItem value="RETIRED">Retirado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="prefill-disposition">Disposição</Label>
+                    <Select
+                      value={prefillData.disposition}
+                      onValueChange={(value: any) =>
+                        setPrefillData({ ...prefillData, disposition: value })
+                      }
+                    >
+                      <SelectTrigger id="prefill-disposition">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="KEEP">Manter</SelectItem>
+                        <SelectItem value="SOLD">Vendido</SelectItem>
+                        <SelectItem value="GIVEN_AWAY">Oferecido</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep('category')}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Voltar
+                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={handlePrefillContinue}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600"
+                  >
+                    Continuar para Fotos
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -347,7 +513,7 @@ export default function AddMultipleClothingItemsDialog({
               <div className="flex justify-between items-center pt-4 border-t">
                 <Button
                   variant="outline"
-                  onClick={() => setStep('category')}
+                  onClick={() => setStep('prefill')}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Voltar
