@@ -35,13 +35,13 @@ export default async function AdminPage() {
     appConfig.forEach(config => {
       configMap[config.key] = config.value
     })
+
+    totalChildren = await prisma.child.count()
+    totalItems = await prisma.clothingItem.count()
   } catch (error) {
     console.error('Error fetching admin data:', error)
     // Continue with empty arrays if queries fail
   }
-
-  const totalChildren = await prisma.child.count()
-  const totalItems = await prisma.clothingItem.count()
 
   return (
     <div className="min-h-screen pb-12">
