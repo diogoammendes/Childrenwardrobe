@@ -52,7 +52,7 @@ export default function AddMultipleClothingItemsDialog({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   
-  const [step, setStep] = useState<'category' | 'prefill' | 'photos' | 'review'>('category')
+  const [step, setStep] = useState<'category' | 'photos' | 'review'>('category')
   const [category, setCategory] = useState<ClothingCategory | ''>('')
   const [photos, setPhotos] = useState<string[]>([])
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([])
@@ -73,19 +73,11 @@ export default function AddMultipleClothingItemsDialog({
 
   const subcategories = category ? getSubcategories(category) : {}
 
-  const handleCategorySelect = () => {
+  const handleCategoryContinue = () => {
     if (!category) {
       setError('Selecione uma categoria')
       return
     }
-    // Resetar subcategoria quando mudar de categoria
-    setPrefillData(prev => ({ ...prev, subcategory: '' }))
-    setStep('prefill')
-    setError('')
-  }
-
-  const handlePrefillContinue = () => {
-    // Pode avançar mesmo sem preencher nada - tudo é opcional
     setStep('photos')
     setError('')
   }
@@ -256,7 +248,6 @@ export default function AddMultipleClothingItemsDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {step === 'category' && 'Adicionar Múltiplas Peças'}
-            {step === 'prefill' && 'Preencher Campos (Opcional)'}
             {step === 'photos' && 'Adicionar Fotos'}
             {step === 'review' && 'Revisão e Criação'}
           </DialogTitle>
@@ -510,22 +501,22 @@ export default function AddMultipleClothingItemsDialog({
                 </div>
               )}
 
-              <div className="flex justify-between items-center pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep('prefill')}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Voltar
-                </Button>
-                <Button
-                  onClick={handlePhotosSubmit}
-                  disabled={photos.length === 0}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600"
-                >
-                  Continuar para Revisão
-                </Button>
-              </div>
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => setStep('category')}
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Voltar
+                    </Button>
+                    <Button
+                      onClick={handlePhotosSubmit}
+                      disabled={photos.length === 0}
+                      className="bg-gradient-to-r from-blue-500 to-indigo-600"
+                    >
+                      Continuar para Revisão
+                    </Button>
+                  </div>
             </div>
           )}
 
