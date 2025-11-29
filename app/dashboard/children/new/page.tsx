@@ -12,7 +12,13 @@ export default async function NewChildPage() {
     redirect('/')
   }
 
-  let sizeOptions = []
+  let sizeOptions: Array<{
+    id: string
+    label: string
+    description: string | null
+    order: number
+    isActive: boolean
+  }> = []
   try {
     sizeOptions = await prisma.sizeOption.findMany({
       where: { isActive: true },

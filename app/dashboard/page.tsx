@@ -15,7 +15,21 @@ export default async function DashboardPage() {
     redirect('/')
   }
 
-  let children = []
+  let children: Array<{
+    id: string
+    name: string
+    gender: string
+    birthDate: Date
+    height: number | null
+    weight: number | null
+    shoeSize: string | null
+    photo: string | null
+    parentId: string
+    parent?: { name: string | null; email: string } | null
+    sharedWith?: Array<{ user: { id: string; name: string | null; email: string } }>
+    currentSize?: { id: string; label: string } | null
+    secondarySize?: { id: string; label: string } | null
+  }> = []
   try {
     children = session.user.roles?.includes('ADMIN')
       ? await prisma.child.findMany({

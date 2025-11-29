@@ -13,7 +13,15 @@ export default async function AdminSizesPage() {
     redirect('/')
   }
 
-  let sizes = []
+  let sizes: Array<{
+    id: string
+    label: string
+    description: string | null
+    order: number
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+  }> = []
   try {
     sizes = await prisma.sizeOption.findMany({
       orderBy: { order: 'asc' },

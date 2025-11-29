@@ -27,8 +27,14 @@ export default async function ChildPage({
     redirect('/')
   }
 
-  let child
-  let sizeOptions = []
+  let child: any = null
+  let sizeOptions: Array<{
+    id: string
+    label: string
+    description: string | null
+    order: number
+    isActive: boolean
+  }> = []
   
   try {
     child = await prisma.child.findUnique({
