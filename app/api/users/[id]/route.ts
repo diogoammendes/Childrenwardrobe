@@ -39,7 +39,7 @@ export async function GET(
     const { password: _, ...userWithoutPassword } = user
     return NextResponse.json({
       ...userWithoutPassword,
-      roles: user.userRoles.map(ur => ur.role),
+      roles: user.userRoles.map((ur: { role: string }) => ur.role),
     })
   } catch (error: any) {
     return NextResponse.json(
