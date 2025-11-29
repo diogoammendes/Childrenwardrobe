@@ -13,9 +13,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getCategoryLabel, getSubcategoryLabel, CLOTHING_CATEGORIES, getSubcategories, type ClothingCategory } from '@/lib/clothing-categories'
-import { Edit, Trash2, ArrowRight, ChevronDown, ChevronUp, Filter, X } from 'lucide-react'
+import { Edit, Trash2, ArrowRight, ChevronDown, ChevronUp, Filter, X, Search } from 'lucide-react'
 import EditClothingItemDialog from './edit-clothing-item-dialog'
 import TransferItemDialog from './transfer-item-dialog'
+import { parseSearchQuery, matchesSearchCriteria, type SearchCriteria } from '@/lib/search-parser'
 
 type SizeOption = {
   id: string
@@ -36,6 +37,7 @@ export default function ClothingItemsList({
   const [transferringItem, setTransferringItem] = useState<any>(null)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [showFilters, setShowFilters] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   
   const NO_FILTER = '__all__'
   const [filters, setFilters] = useState({
@@ -47,6 +49,9 @@ export default function ClothingItemsList({
     status: '',
     disposition: '',
   })
+  
+  // Parse search query
+  const searchCriteria = parseSearchQuery(searchQuery, sizeOptions)
 
   const handleDelete = async (itemId: string) => {
     if (!confirm('Tem a certeza que deseja eliminar esta peça?')) {
@@ -80,7 +85,15 @@ export default function ClothingItemsList({
 
   // Filtrar items
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
+    let result = items
+    
+    // Aplicar pesquisa inteligente primeiro (se houver)
+    if (searchQuery.trim()) {
+      result = result.filter((item) => matchesSearchCriteria(item, searchCriteria, sizeOptions))
+    }
+    
+    // Depois aplicar filtros manuais
+    return result.filter((item) => {
       try {
         if (filters.category && item.category !== filters.category) return false
         if (filters.subcategory && item.subcategory !== filters.subcategory) return false
@@ -105,7 +118,7 @@ export default function ClothingItemsList({
         return false
       }
     })
-  }, [items, filters])
+  }, [items, filters, searchQuery, searchCriteria, sizeOptions])
 
   const groupedItems = useMemo(() => {
     return filteredItems.reduce((acc, item) => {
@@ -118,7 +131,21 @@ export default function ClothingItemsList({
     }, {} as Record<string, any[]>)
   }, [filteredItems])
 
-  const hasActiveFilters = Object.values(filters).some((v) => v !== '')
+  // Expandir automaticamente categorias quando há pesquisa
+  useMemo(() => {
+    if (hasSearchQuery && Object.keys(groupedItems).length > 0) {
+      const newExpanded = new Set(expandedCategories)
+      Object.keys(groupedItems).forEach(cat => {
+        newExpanded.add(cat)
+      })
+      if (newExpanded.size !== expandedCategories.size) {
+        setExpandedCategories(newExpanded)
+      }
+    }
+  }, [hasSearchQuery, groupedItems])
+
+  const hasActiveFilters = Object.values(filters).some((v) => v !== '') || searchQuery.trim() !== ''
+  const hasSearchQuery = searchQuery.trim() !== ''
 
   const clearFilters = () => {
     setFilters({
@@ -130,6 +157,7 @@ export default function ClothingItemsList({
       status: '',
       disposition: '',
     })
+    setSearchQuery('')
   }
 
   if (items.length === 0) {
@@ -155,6 +183,52 @@ export default function ClothingItemsList({
 
   return (
     <div className="space-y-6">
+      {/* Caixa de Pesquisa */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow p-4 border border-blue-100">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Pesquisar... Ex: bodie 6 a 9 meses azul, t-shirt branco, calças 2 anos"
+            className="pl-10 pr-10 h-12 text-base"
+          />
+          {hasSearchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+        {hasSearchQuery && (
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            {searchCriteria.categories.length > 0 && (
+              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                Categoria: {searchCriteria.categories.map(c => getCategoryLabel(c)).join(', ')}
+              </span>
+            )}
+            {searchCriteria.subcategories.length > 0 && (
+              <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+                Tipo: {searchCriteria.subcategories.length} tipo(s)
+              </span>
+            )}
+            {searchCriteria.sizes.length > 0 && (
+              <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                Tamanho: {searchCriteria.sizes.join(', ')}
+              </span>
+            )}
+            {searchCriteria.colors.length > 0 && (
+              <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full">
+                Cor: {searchCriteria.colors.join(', ')}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Filtros */}
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex justify-between items-center mb-4">
@@ -165,7 +239,7 @@ export default function ClothingItemsList({
           >
             <Filter className="mr-2 h-4 w-4" />
             Filtros
-            {hasActiveFilters && (
+            {Object.values(filters).some(v => v !== '') && (
               <span className="ml-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                 {Object.values(filters).filter(v => v !== '').length}
               </span>
@@ -174,7 +248,7 @@ export default function ClothingItemsList({
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               <X className="mr-2 h-4 w-4" />
-              Limpar Filtros
+              Limpar Tudo
             </Button>
           )}
         </div>
@@ -327,10 +401,19 @@ export default function ClothingItemsList({
       {/* Resultados */}
       {filteredItems.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-500 mb-4">Nenhuma peça encontrada com os filtros aplicados</p>
+          <p className="text-gray-500 mb-2">
+            {hasSearchQuery 
+              ? 'Nenhuma peça encontrada com a pesquisa' 
+              : 'Nenhuma peça encontrada com os filtros aplicados'}
+          </p>
+          {hasSearchQuery && (
+            <p className="text-sm text-gray-400 mb-4">
+              Tente pesquisar por: categoria (ex: bodie, t-shirt), tamanho (ex: 6 a 9 meses, 2 anos) ou cor (ex: azul, branco)
+            </p>
+          )}
           {hasActiveFilters && (
             <Button variant="outline" onClick={clearFilters}>
-              Limpar Filtros
+              Limpar Tudo
             </Button>
           )}
         </div>
