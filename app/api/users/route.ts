@@ -39,11 +39,11 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Normalizar roles
-    const rolesArray = Array.isArray(role) 
-      ? role.filter((r: string) => r === 'ADMIN' || r === 'PARENT')
+    const rolesArray: UserRole[] = Array.isArray(role) 
+      ? role.filter((r: string) => r === 'ADMIN' || r === 'PARENT') as UserRole[]
       : role 
         ? [role as UserRole]
-        : ['PARENT']
+        : ['PARENT' as UserRole]
 
     const user = await prisma.user.create({
       data: {
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         userRoles: {
-          create: rolesArray.map((r: UserRole) => ({
+          create: rolesArray.map((r) => ({
             role: r,
           })),
         },
