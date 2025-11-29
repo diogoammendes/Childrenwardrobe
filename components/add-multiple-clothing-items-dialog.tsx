@@ -287,10 +287,10 @@ export default function AddMultipleClothingItemsDialog({
                   Cancelar
                 </Button>
                 <Button
-                  onClick={handleCategorySelect}
+                  onClick={handleCategoryContinue}
                   className="bg-gradient-to-r from-blue-500 to-indigo-600"
                 >
-                  Continuar
+                  Continuar para Fotos
                 </Button>
               </div>
             </div>
