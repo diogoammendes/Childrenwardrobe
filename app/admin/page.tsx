@@ -17,7 +17,14 @@ export default async function AdminPage() {
     redirect('/')
   }
 
-  let users = []
+  let users: Array<{
+    id: string
+    email: string
+    name: string | null
+    createdAt: Date
+    userRoles: Array<{ role: string }>
+    _count: { children: number }
+  }> = []
   let configMap: Record<string, string> = {}
   
   try {
