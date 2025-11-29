@@ -68,17 +68,31 @@ export default async function ChildPage({
     child.secondarySize?.label ||
     (child.secondarySizeId ? sizeLabelMap.get(child.secondarySizeId) : null)
 
-  const summary = buildChildSizeSummary({
-    child,
-    items: child.clothingItems,
-    sizeOptions,
-    categoryMinimums: child.categoryMinimums,
-  })
+  let summary: ChildSizeSummaryData
+  try {
+    summary = buildChildSizeSummary({
+      child,
+      items: child.clothingItems,
+      sizeOptions,
+      categoryMinimums: child.categoryMinimums,
+    })
+  } catch (error) {
+    console.error('Error building child size summary:', error)
+    summary = {
+      belowMinimum: [],
+      hasSizeSelection: false,
+    }
+  }
 
   // Verificar se o utilizador tem acesso a esta criança
   if (!hasRole(session, 'ADMIN')) {
-    const hasAccess = await hasChildAccess(session.user.id, params.id)
-    if (!hasAccess) {
+    try {
+      const hasAccess = await hasChildAccess(session.user.id, params.id)
+      if (!hasAccess) {
+        redirect('/dashboard')
+      }
+    } catch (error) {
+      console.error('Error checking child access:', error)
       redirect('/dashboard')
     }
   }
