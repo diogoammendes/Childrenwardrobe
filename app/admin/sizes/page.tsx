@@ -13,9 +13,15 @@ export default async function AdminSizesPage() {
     redirect('/')
   }
 
-  const sizes = await prisma.sizeOption.findMany({
-    orderBy: { order: 'asc' },
-  })
+  let sizes = []
+  try {
+    sizes = await prisma.sizeOption.findMany({
+      orderBy: { order: 'asc' },
+    })
+  } catch (error) {
+    console.error('Error fetching sizes:', error)
+    // Continue with empty array if query fails
+  }
 
   return (
     <div className="space-y-6">

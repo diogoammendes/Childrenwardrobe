@@ -17,21 +17,28 @@ export default async function AdminPage() {
     redirect('/')
   }
 
-  const users = await prisma.user.findMany({
-    include: {
-      userRoles: true,
-      _count: {
-        select: { children: true },
+  let users = []
+  let configMap: Record<string, string> = {}
+  
+  try {
+    users = await prisma.user.findMany({
+      include: {
+        userRoles: true,
+        _count: {
+          select: { children: true },
+        },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+      orderBy: { createdAt: 'desc' },
+    })
 
-  const appConfig = await prisma.appConfig.findMany()
-  const configMap: Record<string, string> = {}
-  appConfig.forEach(config => {
-    configMap[config.key] = config.value
-  })
+    const appConfig = await prisma.appConfig.findMany()
+    appConfig.forEach(config => {
+      configMap[config.key] = config.value
+    })
+  } catch (error) {
+    console.error('Error fetching admin data:', error)
+    // Continue with empty arrays if queries fail
+  }
 
   const totalChildren = await prisma.child.count()
   const totalItems = await prisma.clothingItem.count()

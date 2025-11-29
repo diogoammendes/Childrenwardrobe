@@ -12,10 +12,16 @@ export default async function NewChildPage() {
     redirect('/')
   }
 
-  const sizeOptions = await prisma.sizeOption.findMany({
-    where: { isActive: true },
-    orderBy: { order: 'asc' },
-  })
+  let sizeOptions = []
+  try {
+    sizeOptions = await prisma.sizeOption.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+    })
+  } catch (error) {
+    console.error('Error fetching size options:', error)
+    // Continue with empty array if query fails
+  }
 
   return (
     <div className="max-w-2xl mx-auto">

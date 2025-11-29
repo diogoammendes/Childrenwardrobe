@@ -15,14 +15,20 @@ export default async function DashboardPage() {
     redirect('/')
   }
 
-  const children = session.user.roles?.includes('ADMIN')
-    ? await prisma.child.findMany({
-        include: {
-          parent: { select: { name: true, email: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-      })
-    : await getAccessibleChildren(session.user.id)
+  let children = []
+  try {
+    children = session.user.roles?.includes('ADMIN')
+      ? await prisma.child.findMany({
+          include: {
+            parent: { select: { name: true, email: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+      : await getAccessibleChildren(session.user.id)
+  } catch (error) {
+    console.error('Error fetching children:', error)
+    // Continue with empty array if query fails
+  }
 
   return (
     <div className="min-h-screen pb-12">

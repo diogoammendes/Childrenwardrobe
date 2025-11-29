@@ -27,30 +27,39 @@ export default async function ChildPage({
     redirect('/')
   }
 
-  const child = await prisma.child.findUnique({
-    where: { id: params.id },
-    include: {
-      clothingItems: {
-        orderBy: { createdAt: 'desc' },
-        include: {
-          sizeOption: true,
+  let child
+  let sizeOptions = []
+  
+  try {
+    child = await prisma.child.findUnique({
+      where: { id: params.id },
+      include: {
+        clothingItems: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            sizeOption: true,
+          },
         },
+        categoryMinimums: {
+          orderBy: [{ category: 'asc' }, { subcategory: 'asc' }],
+        },
+        currentSize: true,
+        secondarySize: true,
       },
-      categoryMinimums: {
-        orderBy: [{ category: 'asc' }, { subcategory: 'asc' }],
-      },
-      currentSize: true,
-      secondarySize: true,
-    },
-  })
-  if (!child) {
+    })
+    
+    if (!child) {
+      redirect('/dashboard')
+    }
+
+    sizeOptions = await prisma.sizeOption.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+    })
+  } catch (error) {
+    console.error('Error fetching child data:', error)
     redirect('/dashboard')
   }
-
-  const sizeOptions = await prisma.sizeOption.findMany({
-    where: { isActive: true },
-    orderBy: { order: 'asc' },
-  })
 
   const sizeLabelMap = new Map(sizeOptions.map((option: { id: string; label: string }) => [option.id, option.label]))
   const currentSizeLabel =

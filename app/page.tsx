@@ -25,10 +25,16 @@ export default async function Home() {
     // Continue to show login form if there's an error
   }
 
-  const appConfig = await prisma.appConfig.findUnique({
-    where: { key: 'app_name' },
-  })
-  const appName = appConfig?.value || 'Children Wardrobe'
+  let appName = 'Children Wardrobe'
+  try {
+    const appConfig = await prisma.appConfig.findUnique({
+      where: { key: 'app_name' },
+    })
+    appName = appConfig?.value || 'Children Wardrobe'
+  } catch (error) {
+    console.error('Error fetching app config:', error)
+    // Use default name if database query fails
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
