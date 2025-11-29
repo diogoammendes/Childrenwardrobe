@@ -46,17 +46,18 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen pb-12">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
             As Minhas Crianças
           </h1>
-          <p className="text-gray-600">Gerir o guarda-roupa de cada criança</p>
+          <p className="text-sm sm:text-base text-gray-600">Gerir o guarda-roupa de cada criança</p>
         </div>
-        <Link href="/dashboard/children/new">
-          <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all">
+        <Link href="/dashboard/children/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all">
             <Plus className="mr-2 h-4 w-4" />
-            Adicionar Criança
+            <span className="hidden sm:inline">Adicionar Criança</span>
+            <span className="sm:hidden">Adicionar</span>
           </Button>
         </Link>
       </div>
@@ -115,35 +116,35 @@ export default async function DashboardPage() {
                     </div>
                   )}
                 </div>
-                <div className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4 group-hover:text-indigo-600 transition-colors">
+                <div className="p-4 sm:p-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4 group-hover:text-indigo-600 transition-colors break-words">
                     {child.name}
                   </h2>
                   <div className="space-y-2">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <span className="font-semibold text-gray-700 w-20">Idade:</span>
-                      <span>{age} anos</span>
+                    <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                      <span className="font-semibold text-gray-700 w-16 sm:w-20 flex-shrink-0">Idade:</span>
+                      <span className="break-words">{age} anos</span>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <span className="font-semibold text-gray-700 w-20">Género:</span>
-                      <span>{child.gender}</span>
+                    <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                      <span className="font-semibold text-gray-700 w-16 sm:w-20 flex-shrink-0">Género:</span>
+                      <span className="break-words">{child.gender}</span>
                     </div>
                     {child.height && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="font-semibold text-gray-700 w-20">Altura:</span>
-                        <span>{child.height} cm</span>
+                      <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                        <span className="font-semibold text-gray-700 w-16 sm:w-20 flex-shrink-0">Altura:</span>
+                        <span className="break-words">{child.height} cm</span>
                       </div>
                     )}
                     {child.weight && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="font-semibold text-gray-700 w-20">Peso:</span>
-                        <span>{child.weight} kg</span>
+                      <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                        <span className="font-semibold text-gray-700 w-16 sm:w-20 flex-shrink-0">Peso:</span>
+                        <span className="break-words">{child.weight} kg</span>
                       </div>
                     )}
                     {child.shoeSize && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="font-semibold text-gray-700 w-20">Sapato:</span>
-                        <span>{child.shoeSize}</span>
+                      <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                        <span className="font-semibold text-gray-700 w-16 sm:w-20 flex-shrink-0">Sapato:</span>
+                        <span className="break-words">{child.shoeSize}</span>
                       </div>
                     )}
                   </div>

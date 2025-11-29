@@ -23,32 +23,33 @@ export default function AdminNav({ user, appName }: { user: { name?: string | nu
             <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg group-hover:scale-110 transition-transform duration-200 shadow-lg">
               <Shield className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Admin - {appName || 'Children Wardrobe'}
+            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent truncate">
+              <span className="hidden sm:inline">Admin - </span>{appName || 'Children Wardrobe'}
             </span>
           </Link>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
-              <User className="h-4 w-4 text-purple-600" />
-              <span className="font-medium">{user.name || user.email}</span>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
+              <User className="h-4 w-4 text-purple-600 flex-shrink-0" />
+              <span className="font-medium truncate max-w-[120px]">{user.name || user.email}</span>
             </div>
             <Button 
               variant="ghost" 
               onClick={() => signOut({ callbackUrl: '/' })}
               className="hover:bg-red-50 hover:text-red-600 transition-colors"
+              size="sm"
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
+              <LogOut className="sm:mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
-        <div className="flex space-x-1 pb-3">
+        <div className="flex flex-wrap gap-1 sm:space-x-1 pb-3">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                'text-sm font-semibold px-4 py-2 rounded-lg transition-all',
+                'text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg transition-all',
                 pathname === link.href
                   ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'

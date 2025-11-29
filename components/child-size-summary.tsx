@@ -44,13 +44,13 @@ export default function ChildSizeSummary({ summary }: ChildSizeSummaryProps) {
 
   return (
     <div className="space-y-6 mb-8">
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 break-words">
               Resumo por tamanho
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Visão geral das peças por tamanho atual e tamanhos relacionados.
             </p>
           </div>
@@ -71,21 +71,21 @@ export default function ChildSizeSummary({ summary }: ChildSizeSummaryProps) {
             {sections.map((section) => (
               <div 
                 key={section.title} 
-                className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all duration-200"
+                className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 p-4 sm:p-5 hover:shadow-lg transition-all duration-200"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div>
+                <div className="flex items-center justify-between mb-4 gap-2">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs uppercase text-gray-500 font-semibold tracking-wide mb-1">{section.title}</p>
-                    <h3 className="text-xl font-bold text-gray-800">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 break-words">
                       {section.sizeLabel}
                     </h3>
                   </div>
-                  <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 px-3 py-1 text-sm font-semibold">
+                  <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold flex-shrink-0">
                     {section.stats.total} peças
                   </Badge>
                 </div>
                 {section.helperText && (
-                  <p className="text-xs text-gray-500 mb-4 bg-gray-50 px-3 py-2 rounded-lg">{section.helperText}</p>
+                  <p className="text-xs text-gray-500 mb-4 bg-gray-50 px-3 py-2 rounded-lg break-words">{section.helperText}</p>
                 )}
                 <dl className="grid grid-cols-2 gap-3">
                   <div className="bg-green-50 rounded-lg p-3 border border-green-100">
@@ -115,14 +115,14 @@ export default function ChildSizeSummary({ summary }: ChildSizeSummaryProps) {
         )}
       </div>
 
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6">
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6">
         <div className="flex items-center mb-4">
-          <div className="p-2 bg-red-100 rounded-lg mr-3">
+          <div className="p-2 bg-red-100 rounded-lg mr-3 flex-shrink-0">
             <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h3 className="text-2xl font-bold text-gray-800">Categorias abaixo do mínimo</h3>
+          <h3 className="text-lg sm:text-2xl font-bold text-gray-800 break-words">Categorias abaixo do mínimo</h3>
         </div>
         {summary.belowMinimum.length === 0 ? (
           <div className="text-center py-8">
@@ -140,24 +140,24 @@ export default function ChildSizeSummary({ summary }: ChildSizeSummaryProps) {
             {summary.belowMinimum.map((entry) => (
               <li
                 key={entry.id}
-                className="flex items-center justify-between bg-red-50 border-2 border-red-200 rounded-xl p-4 hover:bg-red-100 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-red-50 border-2 border-red-200 rounded-xl p-4 hover:bg-red-100 transition-colors"
               >
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-red-200 rounded-lg">
+                <div className="flex items-center space-x-3 min-w-0 flex-1">
+                  <div className="p-2 bg-red-200 rounded-lg flex-shrink-0">
                     <svg className="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div>
-                    <p className="font-bold text-gray-800">{entry.categoryLabel}</p>
-                    <p className="text-sm text-gray-600">{entry.subcategoryLabel}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-gray-800 text-sm sm:text-base break-words">{entry.categoryLabel}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 break-words">{entry.subcategoryLabel}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-700 font-medium">
+                <div className="text-left sm:text-right flex-shrink-0">
+                  <p className="text-xs sm:text-sm text-gray-700 font-medium">
                     {entry.available}/{entry.required} peças
                   </p>
-                  <p className="text-sm text-red-700 font-bold">
+                  <p className="text-xs sm:text-sm text-red-700 font-bold">
                     Faltam {entry.required - entry.available}
                   </p>
                 </div>

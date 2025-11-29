@@ -343,11 +343,11 @@ export default function ClothingItemsList({
               <div key={category} className="bg-white rounded-lg shadow">
                 <button
                   onClick={() => toggleCategory(category)}
-                  className="w-full flex justify-between items-center p-6 hover:bg-gray-50 transition-colors"
+                  className="w-full flex justify-between items-center p-4 sm:p-6 hover:bg-gray-50 transition-colors"
                 >
-                  <h3 className="text-xl font-semibold text-gray-800">
+                  <h3 className="text-base sm:text-xl font-semibold text-gray-800 break-words">
                     {getCategoryLabel(category as ClothingCategory)}
-                    <span className="ml-2 text-sm font-normal text-gray-500">
+                    <span className="ml-2 text-xs sm:text-sm font-normal text-gray-500">
                       ({items.length})
                     </span>
                   </h3>
@@ -359,37 +359,37 @@ export default function ClothingItemsList({
                 </button>
                 
                 {isExpanded && (
-                  <div className="px-6 pb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                       {items.map((item) => {
                         const colors = JSON.parse(item.colors || '[]')
 
                         return (
                           <div
                             key={item.id}
-                            className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                            className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow overflow-hidden"
                           >
                             {item.photo && (
                               <img
                                 src={item.photo}
                                 alt={item.subcategory}
-                                className="w-full h-48 object-cover rounded mb-3"
+                                className="w-full h-40 sm:h-48 object-cover rounded mb-3"
                               />
                             )}
-                            <div className="space-y-2">
+                            <div className="space-y-2 min-w-0">
                               <div>
-                                <p className="font-semibold text-gray-800">
+                                <p className="font-semibold text-gray-800 text-sm sm:text-base break-words">
                                   {getSubcategoryLabel(
                                     category as ClothingCategory,
                                     item.subcategory
                                   )}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-xs sm:text-sm text-gray-600 break-words">
                                   Tamanho: {item.sizeOption?.label || item.size || '—'}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-xs sm:text-sm text-gray-600 break-words">
                                   Cores: {colors.join(', ') || 'N/A'}
                                 </p>
                               </div>
@@ -417,27 +417,33 @@ export default function ClothingItemsList({
                                   {dispositionLabels[item.disposition as keyof typeof dispositionLabels]}
                                 </span>
                               </div>
-                              <div className="flex space-x-2 mt-3">
+                              <div className="flex flex-wrap gap-2 mt-3">
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setEditingItem(item)}
+                                  className="flex-1 sm:flex-none"
                                 >
-                                  <Edit className="h-3 w-3" />
+                                  <Edit className="h-3 w-3 sm:mr-1" />
+                                  <span className="hidden sm:inline">Editar</span>
                                 </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setTransferringItem(item)}
+                                  className="flex-1 sm:flex-none"
                                 >
-                                  <ArrowRight className="h-3 w-3" />
+                                  <ArrowRight className="h-3 w-3 sm:mr-1" />
+                                  <span className="hidden sm:inline">Transferir</span>
                                 </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleDelete(item.id)}
+                                  className="flex-1 sm:flex-none"
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-3 w-3 sm:mr-1" />
+                                  <span className="hidden sm:inline">Eliminar</span>
                                 </Button>
                               </div>
                             </div>

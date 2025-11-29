@@ -14,22 +14,23 @@ export default function DashboardNav({ user, appName }: { user: { name?: string 
             <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg group-hover:scale-110 transition-transform duration-200 shadow-lg">
               <Shirt className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent truncate">
               {appName || 'Children Wardrobe'}
             </span>
           </Link>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
-              <User className="h-4 w-4 text-indigo-600" />
-              <span className="font-medium">{user.name || user.email}</span>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
+              <User className="h-4 w-4 text-indigo-600 flex-shrink-0" />
+              <span className="font-medium truncate max-w-[120px]">{user.name || user.email}</span>
             </div>
             <Button
               variant="ghost"
               onClick={() => signOut({ callbackUrl: '/' })}
               className="hover:bg-red-50 hover:text-red-600 transition-colors"
+              size="sm"
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
+              <LogOut className="sm:mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>

@@ -126,8 +126,8 @@ export default async function ChildPage({
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 h-32 relative">
             {child.photo && (
-              <div className="absolute bottom-0 left-8 transform translate-y-1/2">
-                <div className="w-32 h-32 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white">
+              <div className="absolute bottom-0 left-4 sm:left-8 transform translate-y-1/2">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white">
                   <img
                     src={child.photo}
                     alt={child.name}
@@ -138,56 +138,56 @@ export default async function ChildPage({
             )}
           </div>
           
-          <div className="pt-20 pb-6 px-8">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+          <div className="pt-16 sm:pt-20 pb-4 sm:pb-6 px-4 sm:px-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4 break-words">
                   {child.name}
                 </h1>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-2 sm:p-3 border border-blue-100">
                     <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Idade</p>
-                    <p className="text-lg font-bold text-gray-800">{age} anos</p>
+                    <p className="text-base sm:text-lg font-bold text-gray-800 break-words">{age} anos</p>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-100">
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-2 sm:p-3 border border-purple-100">
                     <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Género</p>
-                    <p className="text-lg font-bold text-gray-800">{child.gender}</p>
+                    <p className="text-base sm:text-lg font-bold text-gray-800 break-words">{child.gender}</p>
                   </div>
                   {child.height && (
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-3 border border-green-100">
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-2 sm:p-3 border border-green-100">
                       <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Altura</p>
-                      <p className="text-lg font-bold text-gray-800">{child.height} cm</p>
+                      <p className="text-base sm:text-lg font-bold text-gray-800 break-words">{child.height} cm</p>
                     </div>
                   )}
                   {child.weight && (
-                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-3 border border-orange-100">
+                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-2 sm:p-3 border border-orange-100">
                       <p className="text-xs text-gray-600 uppercase font-semibold mb-1">Peso</p>
-                      <p className="text-lg font-bold text-gray-800">{child.weight} kg</p>
+                      <p className="text-base sm:text-lg font-bold text-gray-800 break-words">{child.weight} kg</p>
                     </div>
                   )}
                 </div>
                 {(currentSizeLabel || secondarySizeLabel) && (
-                  <div className="mt-4 flex flex-wrap gap-3">
+                  <div className="mt-4 flex flex-wrap gap-2 sm:gap-3">
                     {currentSizeLabel && (
-                      <div className="inline-flex items-center px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-indigo-100 text-indigo-700 rounded-full text-xs sm:text-sm font-semibold">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Tamanho atual: {currentSizeLabel}
+                        <span className="break-words">Tamanho atual: {currentSizeLabel}</span>
                       </div>
                     )}
                     {secondarySizeLabel && (
-                      <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-100 text-purple-700 rounded-full text-xs sm:text-sm font-semibold">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
-                        Tamanho adicional: {secondarySizeLabel}
+                        <span className="break-words">Tamanho adicional: {secondarySizeLabel}</span>
                       </div>
                     )}
                   </div>
                 )}
               </div>
-              <div className="flex space-x-2 ml-6">
+              <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 sm:ml-6 w-full sm:w-auto">
                 {isOwner && <ShareChildButton childId={child.id} />}
                 <UpdateChildForm child={child} sizeOptions={sizeOptions} />
               </div>
