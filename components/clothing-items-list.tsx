@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -132,7 +132,7 @@ export default function ClothingItemsList({
   }, [filteredItems])
 
   // Expandir automaticamente categorias quando há pesquisa
-  useMemo(() => {
+  useEffect(() => {
     if (hasSearchQuery && Object.keys(groupedItems).length > 0) {
       const newExpanded = new Set(expandedCategories)
       Object.keys(groupedItems).forEach(cat => {
@@ -142,7 +142,7 @@ export default function ClothingItemsList({
         setExpandedCategories(newExpanded)
       }
     }
-  }, [hasSearchQuery, groupedItems])
+  }, [hasSearchQuery, groupedItems, expandedCategories])
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== '') || searchQuery.trim() !== ''
   const hasSearchQuery = searchQuery.trim() !== ''
