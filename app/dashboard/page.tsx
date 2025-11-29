@@ -13,7 +13,7 @@ export default async function DashboardPage() {
     redirect('/')
   }
 
-  const children = session.user.role === 'ADMIN'
+  const children = session.user.roles?.includes('ADMIN')
     ? await prisma.child.findMany({
         include: {
           parent: { select: { name: true, email: true } },
@@ -65,7 +65,7 @@ export default async function DashboardPage() {
                 (1000 * 60 * 60 * 24 * 365.25)
             )
             const isOwner = child.parentId === session.user.id
-            const isShared = !isOwner && session.user.role === 'PARENT'
+            const isShared = !isOwner && !session.user.roles?.includes('ADMIN')
             return (
               <Link
                 key={child.id}

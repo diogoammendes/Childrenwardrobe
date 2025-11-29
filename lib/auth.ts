@@ -35,7 +35,10 @@ export const authOptions: NextAuthOptions = {
           }
 
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email }
+            where: { email: credentials.email },
+            include: {
+              userRoles: true, // userRoleAssignment
+            }
           })
 
           if (!user) {
@@ -51,11 +54,16 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
+          // Obter roles do utilizador
+          const roles = user.userRoles.map((ur: { role: string }) => ur.role)
+          const primaryRole = roles.includes('ADMIN') ? 'ADMIN' : (roles[0] || 'PARENT')
+
           return {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role,
+            role: primaryRole, // Role primária para compatibilidade
+            roles: roles, // Array de roles
           }
         } catch (error) {
           console.error('Error in authorize:', error)
@@ -68,6 +76,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
+        token.roles = (user as any).roles || [user.role]
         token.id = user.id
       }
       return token
@@ -75,6 +84,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role as string
+        session.user.roles = (token.roles as string[]) || [token.role as string]
         session.user.id = token.id as string
       }
       return session

@@ -21,7 +21,7 @@ export default function CreateUserForm() {
     name: '',
     email: '',
     password: '',
-    role: 'PARENT' as 'ADMIN' | 'PARENT',
+    roles: ['PARENT'] as string[],
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,22 +86,42 @@ export default function CreateUserForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="role">Função *</Label>
-        <Select
-          value={formData.role}
-          onValueChange={(value: 'ADMIN' | 'PARENT') =>
-            setFormData({ ...formData, role: value })
-          }
-          required
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="PARENT">Pai/Mãe</SelectItem>
-            <SelectItem value="ADMIN">Administrador</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label>Roles *</Label>
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.roles.includes('ADMIN')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFormData({ ...formData, roles: [...formData.roles, 'ADMIN'] })
+                } else {
+                  setFormData({ ...formData, roles: formData.roles.filter(r => r !== 'ADMIN') })
+                }
+              }}
+              className="w-4 h-4 text-indigo-600 rounded"
+            />
+            <span className="text-sm font-medium">Administrador</span>
+          </label>
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.roles.includes('PARENT')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFormData({ ...formData, roles: [...formData.roles, 'PARENT'] })
+                } else {
+                  setFormData({ ...formData, roles: formData.roles.filter(r => r !== 'PARENT') })
+                }
+              }}
+              className="w-4 h-4 text-indigo-600 rounded"
+            />
+            <span className="text-sm font-medium">Pai/Mãe</span>
+          </label>
+        </div>
+        {formData.roles.length === 0 && (
+          <p className="text-xs text-red-500">Selecione pelo menos uma role</p>
+        )}
       </div>
 
       {error && (

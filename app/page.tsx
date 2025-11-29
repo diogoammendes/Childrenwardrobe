@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getServerSession } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import LoginForm from '@/components/login-form'
 
 export default async function Home() {
@@ -7,11 +8,11 @@ export default async function Home() {
     const session = await getServerSession()
     
     if (session?.user) {
-      if (session.user.role === 'ADMIN') {
-        redirect('/admin')
-      } else {
-        redirect('/dashboard')
-      }
+    if (session.user.roles?.includes('ADMIN')) {
+      redirect('/admin')
+    } else {
+      redirect('/dashboard')
+    }
     }
   } catch (error: any) {
     // NEXT_REDIRECT is not an error, it's how Next.js handles redirects
@@ -21,6 +22,11 @@ export default async function Home() {
     console.error('Error checking session:', error)
     // Continue to show login form if there's an error
   }
+
+  const appConfig = await prisma.appConfig.findUnique({
+    where: { key: 'app_name' },
+  })
+  const appName = appConfig?.value || 'Children Wardrobe'
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -39,7 +45,7 @@ export default async function Home() {
             </svg>
           </div>
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Children Wardrobe
+            {appName}
           </h1>
           <p className="text-gray-600 text-lg">
             Gerir o guarda-roupa dos seus filhos

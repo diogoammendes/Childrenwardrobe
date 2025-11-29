@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 import { getAccessibleChildren } from '@/lib/child-access'
 
@@ -7,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession()
     
-    if (!session || session.user.role !== 'PARENT') {
+    if (!session || !hasRole(session, 'PARENT')) {
       return NextResponse.json(
         { error: 'Não autorizado' },
         { status: 401 }
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    if (session.user.role === 'ADMIN') {
+    if (hasRole(session, 'ADMIN')) {
       const children = await prisma.child.findMany({
         include: { 
           parent: { select: { name: true, email: true } },

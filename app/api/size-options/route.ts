@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession()
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || !hasRole(session, 'ADMIN')) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 

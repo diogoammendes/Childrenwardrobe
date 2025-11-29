@@ -1,4 +1,5 @@
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import SizeOptionsManager from '@/components/size-options-manager'
@@ -6,7 +7,7 @@ import SizeOptionsManager from '@/components/size-options-manager'
 export default async function AdminSizesPage() {
   const session = await getServerSession()
 
-  if (!session || session.user.role !== 'ADMIN') {
+  if (!session || !hasRole(session, 'ADMIN')) {
     redirect('/')
   }
 

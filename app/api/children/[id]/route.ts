@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 import { hasChildAccess } from '@/lib/child-access'
 
@@ -28,7 +29,7 @@ export async function PATCH(
       )
     }
 
-    if (session.user.role === 'PARENT') {
+    if (!hasRole(session, 'ADMIN')) {
       const hasAccess = await hasChildAccess(session.user.id, params.id)
       if (!hasAccess) {
         return NextResponse.json(

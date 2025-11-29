@@ -1,4 +1,5 @@
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -64,7 +65,7 @@ export default async function ChildPage({
   })
 
   // Verificar se o utilizador tem acesso a esta criança
-  if (session.user.role === 'PARENT') {
+  if (!hasRole(session, 'ADMIN')) {
     const hasAccess = await hasChildAccess(session.user.id, params.id)
     if (!hasAccess) {
       redirect('/dashboard')

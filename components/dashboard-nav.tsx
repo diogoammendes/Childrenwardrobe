@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Home, LogOut, User, Shirt } from 'lucide-react'
 
-export default function DashboardNav({ user }: { user: { name?: string | null; email: string } }) {
+export default function DashboardNav({ user, appName }: { user: { name?: string | null; email: string }; appName?: string }) {
   return (
     <nav className="bg-white/80 backdrop-blur-md shadow-md border-b border-gray-200/50 sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -15,7 +15,7 @@ export default function DashboardNav({ user }: { user: { name?: string | null; e
               <Shirt className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Children Wardrobe
+              {appName || 'Children Wardrobe'}
             </span>
           </Link>
           <div className="flex items-center space-x-4">

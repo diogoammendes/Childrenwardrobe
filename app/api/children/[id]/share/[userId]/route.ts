@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 
 // Remover partilha de criança
@@ -28,8 +29,8 @@ export async function DELETE(
       )
     }
 
-    // Apenas o proprietário pode remover partilhas
-    if (session.user.role === 'PARENT' && child.parentId !== session.user.id) {
+    // Apenas o proprietário pode remover partilhas (ou admin)
+    if (!hasRole(session, 'ADMIN') && child.parentId !== session.user.id) {
       return NextResponse.json(
         { error: 'Apenas o proprietário pode remover partilhas' },
         { status: 403 }

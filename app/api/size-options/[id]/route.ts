@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 
 export async function PATCH(
@@ -9,7 +10,7 @@ export async function PATCH(
   try {
     const session = await getServerSession()
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || !hasRole(session, 'ADMIN')) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
@@ -43,7 +44,7 @@ export async function DELETE(
   try {
     const session = await getServerSession()
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || !hasRole(session, 'ADMIN')) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 

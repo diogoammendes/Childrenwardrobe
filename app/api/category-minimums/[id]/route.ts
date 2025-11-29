@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 
 export async function DELETE(
@@ -28,7 +29,7 @@ export async function DELETE(
       )
     }
 
-    if (session.user.role === 'PARENT' && minimum.child.parentId !== session.user.id) {
+    if (!hasRole(session, 'ADMIN') && minimum.child.parentId !== session.user.id) {
       return NextResponse.json(
         { error: 'Não autorizado' },
         { status: 403 }

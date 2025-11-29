@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 import { hasChildAccess } from '@/lib/child-access'
 
@@ -29,7 +30,7 @@ export async function POST(
       )
     }
 
-    if (session.user.role === 'PARENT') {
+    if (!hasRole(session, 'ADMIN')) {
       const hasAccess = await hasChildAccess(session.user.id, item.childId)
       if (!hasAccess) {
         return NextResponse.json(
@@ -61,7 +62,7 @@ export async function POST(
     }
 
     // Verificar se o utilizador tem acesso a ambas as crianças
-    if (session.user.role === 'PARENT') {
+    if (!hasRole(session, 'ADMIN')) {
       const hasAccessToSource = await hasChildAccess(session.user.id, item.childId)
       const hasAccessToTarget = await hasChildAccess(session.user.id, childId)
       

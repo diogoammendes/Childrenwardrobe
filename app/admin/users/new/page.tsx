@@ -5,7 +5,7 @@ import CreateUserForm from '@/components/create-user-form'
 export default async function NewUserPage() {
   const session = await getServerSession()
   
-  if (!session || session.user.role !== 'ADMIN') {
+  if (!session || !session.user.roles?.includes('ADMIN')) {
     redirect('/')
   }
 

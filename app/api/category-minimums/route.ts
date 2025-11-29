@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (session.user.role === 'PARENT' && child.parentId !== session.user.id) {
+    if (!hasRole(session, 'ADMIN') && child.parentId !== session.user.id) {
       return NextResponse.json(
         { error: 'Não autorizado' },
         { status: 403 }
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    if (session.user.role === 'PARENT' && child.parentId !== session.user.id) {
+    if (!hasRole(session, 'ADMIN') && child.parentId !== session.user.id) {
       return NextResponse.json(
         { error: 'Não autorizado' },
         { status: 403 }

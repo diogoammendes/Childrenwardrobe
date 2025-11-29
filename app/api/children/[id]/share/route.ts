@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { hasRole } from '@/lib/auth-helpers'
 import { prisma } from '@/lib/prisma'
 import { hasChildAccess } from '@/lib/child-access'
 
@@ -29,8 +30,8 @@ export async function POST(
       )
     }
 
-    // Apenas o proprietário pode partilhar
-    if (session.user.role === 'PARENT' && child.parentId !== session.user.id) {
+    // Apenas o proprietário pode partilhar (ou admin)
+    if (!hasRole(session, 'ADMIN') && child.parentId !== session.user.id) {
       return NextResponse.json(
         { error: 'Apenas o proprietário pode partilhar a criança' },
         { status: 403 }

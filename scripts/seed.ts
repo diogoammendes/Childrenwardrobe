@@ -42,12 +42,17 @@ async function main() {
   if (!existingAdmin) {
     const hashedPassword = await bcrypt.hash(adminPassword, 10)
     
-    await prisma.user.create({
+      const admin = await prisma.user.create({
       data: {
         email: adminEmail,
         password: hashedPassword,
         name: 'Administrador',
-        role: 'ADMIN',
+        userRoles: {
+          create: [
+            { role: 'ADMIN' },
+            { role: 'PARENT' }, // Admin também pode ser pai/mãe
+          ],
+        },
       },
     })
 
@@ -55,8 +60,50 @@ async function main() {
     console.log(`   Email: ${adminEmail}`)
     console.log(`   Password: ${adminPassword}`)
   } else {
-    console.log('ℹ️  Utilizador admin já existe')
+    // Garantir que o admin tem as roles ADMIN e PARENT
+    const adminRoles = await prisma.userRoleAssignment.findMany({
+      where: { userId: existingAdmin.id },
+    })
+
+    const hasAdminRole = adminRoles.some(r => r.role === 'ADMIN')
+    const hasParentRole = adminRoles.some(r => r.role === 'PARENT')
+
+    if (!hasAdminRole) {
+      await prisma.userRoleAssignment.create({
+        data: {
+          userId: existingAdmin.id,
+          role: 'ADMIN',
+        },
+      })
+      console.log('✅ Role ADMIN adicionada ao utilizador admin existente')
+    }
+
+    if (!hasParentRole) {
+      await prisma.userRoleAssignment.create({
+        data: {
+          userId: existingAdmin.id,
+          role: 'PARENT',
+        },
+      })
+      console.log('✅ Role PARENT adicionada ao utilizador admin existente')
+    }
+
+    if (hasAdminRole && hasParentRole) {
+      console.log('ℹ️  Utilizador admin já existe com todas as roles')
+    }
   }
+
+  // Criar configuração padrão do nome da aplicação
+  await prisma.appConfig.upsert({
+    where: { key: 'app_name' },
+    update: {},
+    create: {
+      key: 'app_name',
+      value: 'Children Wardrobe',
+    },
+  })
+
+  console.log('✅ Configuração padrão criada')
 
   console.log('✨ Seeding completed!')
 }

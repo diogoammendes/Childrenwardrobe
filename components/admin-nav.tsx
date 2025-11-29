@@ -12,7 +12,7 @@ const navLinks = [
   { href: '/admin/sizes', label: 'Tamanhos' },
 ]
 
-export default function AdminNav({ user }: { user: { name?: string | null; email: string } }) {
+export default function AdminNav({ user, appName }: { user: { name?: string | null; email: string }; appName?: string }) {
   const pathname = usePathname()
 
   return (
@@ -24,7 +24,7 @@ export default function AdminNav({ user }: { user: { name?: string | null; email
               <Shield className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Admin - Children Wardrobe
+              Admin - {appName || 'Children Wardrobe'}
             </span>
           </Link>
           <div className="flex items-center space-x-4">

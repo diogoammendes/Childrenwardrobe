@@ -15,6 +15,26 @@ enum UserRole {
   PARENT
 }
 
+model UserRoleAssignment {
+  id        String   @id @default(cuid())
+  userId    String
+  role      UserRole
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, role])
+  @@index([userId])
+}
+
+model AppConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum ItemStatus {
   RETIRED
   IN_USE
@@ -96,12 +116,12 @@ model User {
   email     String   @unique
   name      String?
   password  String
-  role      UserRole @default(PARENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   children       Child[]           @relation("ChildOwner")
   sharedChildren ChildSharedWith[]
+  userRoles      UserRoleAssignment[]
 }
 
 model Child {
