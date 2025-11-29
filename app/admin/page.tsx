@@ -26,6 +26,8 @@ export default async function AdminPage() {
     _count: { children: number }
   }> = []
   let configMap: Record<string, string> = {}
+  let totalChildren = 0
+  let totalItems = 0
   
   try {
     users = await prisma.user.findMany({
