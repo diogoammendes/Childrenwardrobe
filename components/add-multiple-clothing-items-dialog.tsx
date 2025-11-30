@@ -518,49 +518,40 @@ export default function AddMultipleClothingItemsDialog({
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Coluna esquerda - Fotos */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-gray-800 mb-4">Fotos ({pendingItems.length})</h3>
-                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                      {pendingItems.map((item, index) => (
-                        <div
-                          key={item.id}
-                          className={`border-2 rounded-lg p-3 transition-all ${
-                            discardedItems.has(item.id)
-                              ? 'opacity-50 border-gray-200'
-                              : creatingItems.has(item.id)
-                              ? 'border-blue-400 bg-blue-50'
-                              : 'border-gray-300 hover:border-indigo-400'
-                          }`}
-                        >
-                          <img
-                            src={item.photo}
-                            alt={`Peça ${index + 1}`}
-                            className="w-full h-48 object-cover rounded-lg mb-2"
-                          />
-                          <p className="text-sm text-gray-600 text-center">
-                            Peça {index + 1}
-                          </p>
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                  {pendingItems.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className={`border-2 rounded-lg p-4 transition-all ${
+                        discardedItems.has(item.id)
+                          ? 'opacity-50 border-gray-200 bg-gray-50'
+                          : creatingItems.has(item.id)
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-gray-300 bg-white hover:border-indigo-400'
+                      }`}
+                    >
+                      <div className="flex flex-col lg:flex-row gap-4">
+                        {/* Foto */}
+                        <div className="flex-shrink-0 lg:w-1/3">
+                          <div className="relative">
+                            <img
+                              src={item.photo}
+                              alt={`Peça ${index + 1}`}
+                              className="w-full h-48 lg:h-64 object-cover rounded-lg border-2 border-gray-200"
+                            />
+                            <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm font-semibold">
+                              Peça {index + 1}
+                            </div>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* Coluna direita - Formulários */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-gray-800 mb-4">Informações das Peças</h3>
-                    <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
-                      {pendingItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="border-2 rounded-lg p-4 bg-gray-50"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-semibold text-gray-800">
-                              Peça {pendingItems.findIndex((p) => p.id === item.id) + 1}
+                        {/* Formulário */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                            <h4 className="font-semibold text-gray-800 text-lg">
+                              Peça {index + 1}
                             </h4>
-                            <div className="flex space-x-2">
+                            <div className="flex flex-wrap gap-2">
                               <Button
                                 size="sm"
                                 onClick={() => createItem(item)}
@@ -587,7 +578,8 @@ export default function AddMultipleClothingItemsDialog({
                                 onClick={() => discardItem(item)}
                                 disabled={creatingItems.has(item.id)}
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-3 w-3 sm:mr-1" />
+                                <span className="hidden sm:inline">Eliminar</span>
                               </Button>
                             </div>
                           </div>
@@ -614,37 +606,39 @@ export default function AddMultipleClothingItemsDialog({
                               </Select>
                             </div>
 
-                            <div className="space-y-1">
-                              <Label className="text-xs">Tamanho (lista)</Label>
-                              <Select
-                                value={item.sizeOptionId}
-                                onValueChange={(value) =>
-                                  updatePendingItem(item.id, { sizeOptionId: value })
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Opcional" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="__none__">Sem tamanho</SelectItem>
-                                  {sizeOptions.map((option) => (
-                                    <SelectItem key={option.id} value={option.id}>
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs">Tamanho (lista)</Label>
+                                <Select
+                                  value={item.sizeOptionId}
+                                  onValueChange={(value) =>
+                                    updatePendingItem(item.id, { sizeOptionId: value })
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Opcional" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="__none__">Sem tamanho</SelectItem>
+                                    {sizeOptions.map((option) => (
+                                      <SelectItem key={option.id} value={option.id}>
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
 
-                            <div className="space-y-1">
-                              <Label className="text-xs">Tamanho (texto livre)</Label>
-                              <Input
-                                value={item.size}
-                                onChange={(e) =>
-                                  updatePendingItem(item.id, { size: e.target.value })
-                                }
-                                placeholder="Ex: 2 anos, 86, M"
-                              />
+                              <div className="space-y-1">
+                                <Label className="text-xs">Tamanho (texto livre)</Label>
+                                <Input
+                                  value={item.size}
+                                  onChange={(e) =>
+                                    updatePendingItem(item.id, { size: e.target.value })
+                                  }
+                                  placeholder="Ex: 2 anos, 86, M"
+                                />
+                              </div>
                             </div>
 
                             <div className="space-y-1">
@@ -659,7 +653,7 @@ export default function AddMultipleClothingItemsDialog({
                               />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div className="space-y-1">
                                 <Label className="text-xs">Estado</Label>
                                 <Select
@@ -700,9 +694,9 @@ export default function AddMultipleClothingItemsDialog({
                             </div>
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               )}
 
