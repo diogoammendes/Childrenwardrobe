@@ -131,6 +131,9 @@ export default function ClothingItemsList({
     }, {} as Record<string, any[]>)
   }, [filteredItems])
 
+  const hasSearchQuery = searchQuery.trim() !== ''
+  const hasActiveFilters = Object.values(filters).some((v) => v !== '') || hasSearchQuery
+
   // Expandir automaticamente categorias quando há pesquisa
   useEffect(() => {
     if (hasSearchQuery && Object.keys(groupedItems).length > 0) {
@@ -143,9 +146,6 @@ export default function ClothingItemsList({
       }
     }
   }, [hasSearchQuery, groupedItems, expandedCategories])
-
-  const hasActiveFilters = Object.values(filters).some((v) => v !== '') || searchQuery.trim() !== ''
-  const hasSearchQuery = searchQuery.trim() !== ''
 
   const clearFilters = () => {
     setFilters({
