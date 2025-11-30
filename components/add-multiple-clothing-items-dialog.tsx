@@ -262,27 +262,146 @@ export default function AddMultipleClothingItemsDialog({
         <div className="flex-1 overflow-y-auto">
           {step === 'category' && (
             <div className="space-y-6 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="category">Categoria *</Label>
-                <Select
-                  value={category}
-                  onValueChange={(value) => setCategory(value as ClothingCategory)}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(CLOTHING_CATEGORIES).map(([key, value]) => (
-                      <SelectItem key={key} value={key}>
-                        {value.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Apenas a categoria é obrigatória.</strong> Os restantes campos são opcionais e serão aplicados a todas as peças. Pode também deixar em branco e preencher individualmente na revisão.
+                </p>
               </div>
 
-              <div className="flex justify-end space-x-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Categoria *</Label>
+                  <Select
+                    value={category}
+                    onValueChange={(value) => {
+                      setCategory(value as ClothingCategory)
+                      setPrefillData(prev => ({ ...prev, subcategory: '' })) // Reset subcategory when category changes
+                    }}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(CLOTHING_CATEGORIES).map(([key, value]) => (
+                        <SelectItem key={key} value={key}>
+                          {value.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prefill-subcategory">Subcategoria</Label>
+                  <Select
+                    value={prefillData.subcategory}
+                    onValueChange={(value) =>
+                      setPrefillData({ ...prefillData, subcategory: value })
+                    }
+                    disabled={!category}
+                  >
+                    <SelectTrigger id="prefill-subcategory">
+                      <SelectValue placeholder="Opcional - selecione a subcategoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(subcategories).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label as string}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prefill-size-option">Tamanho (lista)</Label>
+                  <Select
+                    value={prefillData.sizeOptionId}
+                    onValueChange={(value) =>
+                      setPrefillData({ ...prefillData, sizeOptionId: value })
+                    }
+                  >
+                    <SelectTrigger id="prefill-size-option">
+                      <SelectValue placeholder="Opcional" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Sem tamanho</SelectItem>
+                      {sizeOptions.map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prefill-size-text">Tamanho (texto livre)</Label>
+                  <Input
+                    id="prefill-size-text"
+                    value={prefillData.size}
+                    onChange={(e) =>
+                      setPrefillData({ ...prefillData, size: e.target.value })
+                    }
+                    placeholder="Opcional. Ex: 2 anos, 86, M"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prefill-colors">Cores (separadas por vírgula)</Label>
+                  <Input
+                    id="prefill-colors"
+                    value={prefillData.colors}
+                    onChange={(e) =>
+                      setPrefillData({ ...prefillData, colors: e.target.value })
+                    }
+                    placeholder="Opcional. Ex: Azul, Branco"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="prefill-status">Estado</Label>
+                    <Select
+                      value={prefillData.status}
+                      onValueChange={(value: any) =>
+                        setPrefillData({ ...prefillData, status: value })
+                      }
+                    >
+                      <SelectTrigger id="prefill-status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="IN_USE">Em uso</SelectItem>
+                        <SelectItem value="FUTURE_USE">Uso futuro</SelectItem>
+                        <SelectItem value="RETIRED">Retirado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="prefill-disposition">Disposição</Label>
+                    <Select
+                      value={prefillData.disposition}
+                      onValueChange={(value: any) =>
+                        setPrefillData({ ...prefillData, disposition: value })
+                      }
+                    >
+                      <SelectTrigger id="prefill-disposition">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="KEEP">Manter</SelectItem>
+                        <SelectItem value="SOLD">Vendido</SelectItem>
+                        <SelectItem value="GIVEN_AWAY">Oferecido</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-4 border-t">
                 <Button variant="outline" onClick={handleClose}>
                   Cancelar
                 </Button>
