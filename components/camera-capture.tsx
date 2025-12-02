@@ -61,30 +61,47 @@ export default function CameraCapture({
   }
 
   const takePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return
+    if (!videoRef.current || !canvasRef.current) {
+      console.error('Video ou canvas não disponível')
+      return
+    }
 
     const video = videoRef.current
     const canvas = canvasRef.current
-    const context = canvas.getContext('2d')
 
-    if (!context) return
+    // Verificar se o vídeo está pronto
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      console.error('Vídeo não está pronto')
+      return
+    }
+
+    const context = canvas.getContext('2d')
+    if (!context) {
+      console.error('Contexto do canvas não disponível')
+      return
+    }
 
     // Ajustar dimensões do canvas ao vídeo
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
+    canvas.width = video.videoWidth || video.clientWidth
+    canvas.height = video.videoHeight || video.clientHeight
 
     // Desenhar frame do vídeo no canvas
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
     // Converter para base64
     const photoData = canvas.toDataURL('image/jpeg', 0.8)
-    setCapturedPhotos((prev) => [...prev, photoData])
-    setIsCapturing(true)
+    if (photoData && photoData !== 'data:,') {
+      setCapturedPhotos((prev) => [...prev, photoData])
+      setIsCapturing(true)
 
-    // Pequeno delay para feedback visual
-    setTimeout(() => {
-      setIsCapturing(false)
-    }, 200)
+      // Pequeno delay para feedback visual
+      setTimeout(() => {
+        setIsCapturing(false)
+      }, 200)
+    } else {
+      console.error('Erro ao capturar foto')
+      setError('Erro ao capturar foto. Tente novamente.')
+    }
   }
 
   const removePhoto = (index: number) => {
@@ -130,6 +147,8 @@ export default function CameraCapture({
                 <div className="text-2xl font-bold text-black">📸</div>
               </div>
             )}
+            {/* Canvas oculto para captura */}
+            <canvas ref={canvasRef} className="hidden" />
           </div>
 
           {/* Fotos capturadas */}
