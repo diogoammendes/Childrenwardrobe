@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog'
 import { CLOTHING_CATEGORIES, getSubcategories, type ClothingCategory } from '@/lib/clothing-categories'
 import { Camera, Upload, X, Check, Trash2, ArrowLeft } from 'lucide-react'
+import CameraCapture from './camera-capture'
 
 type SizeOption = {
   id: string
@@ -50,7 +51,6 @@ export default function AddMultipleClothingItemsDialog({
 }) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
   
   const [step, setStep] = useState<'category' | 'photos' | 'review'>('category')
   const [category, setCategory] = useState<ClothingCategory | ''>('')
@@ -60,6 +60,7 @@ export default function AddMultipleClothingItemsDialog({
   const [error, setError] = useState('')
   const [creatingItems, setCreatingItems] = useState<Set<string>>(new Set())
   const [discardedItems, setDiscardedItems] = useState<Set<string>>(new Set())
+  const [showCamera, setShowCamera] = useState(false)
   
   // Campos pré-preenchidos (opcionais)
   const [prefillData, setPrefillData] = useState({
@@ -101,15 +102,9 @@ export default function AddMultipleClothingItemsDialog({
     })
   }
 
-  const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setPhotos((prev) => [...prev, reader.result as string])
-    }
-    reader.readAsDataURL(file)
+  const handleCameraCapture = (capturedPhotos: string[]) => {
+    setPhotos((prev) => [...prev, ...capturedPhotos])
+    setShowCamera(false)
   }
 
   const removePhoto = (index: number) => {
@@ -417,74 +412,78 @@ export default function AddMultipleClothingItemsDialog({
 
           {step === 'photos' && (
             <div className="space-y-6 py-4">
-              <div className="flex space-x-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Carregar Fotos
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="flex-1"
-                >
-                  <Camera className="mr-2 h-4 w-4" />
-                  Tirar Foto
-                </Button>
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleCameraCapture}
-                className="hidden"
-              />
-
-              {photos.length > 0 && (
-                <div>
-                  <Label>Fotos selecionadas ({photos.length})</Label>
-                  <div className="grid grid-cols-4 gap-4 mt-2">
-                    {photos.map((photo, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={photo}
-                          alt={`Foto ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removePhoto(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+              {showCamera ? (
+                <CameraCapture
+                  onCapture={handleCameraCapture}
+                  onClose={() => setShowCamera(false)}
+                  existingPhotos={photos}
+                />
+              ) : (
+                <>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Carregar Fotos
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowCamera(true)}
+                      className="flex-1"
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Tirar Fotos
+                    </Button>
                   </div>
-                </div>
-              )}
 
-                  <div className="flex justify-between items-center pt-4 border-t">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+
+                  {photos.length > 0 && (
+                    <div>
+                      <Label>Fotos selecionadas ({photos.length})</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
+                        {photos.map((photo, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={photo}
+                              alt={`Foto ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removePhoto(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                            <div className="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                              {index + 1}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t gap-2">
                     <Button
                       variant="outline"
                       onClick={() => setStep('category')}
+                      className="w-full sm:w-auto"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />
                       Voltar
@@ -492,11 +491,13 @@ export default function AddMultipleClothingItemsDialog({
                     <Button
                       onClick={handlePhotosSubmit}
                       disabled={photos.length === 0}
-                      className="bg-gradient-to-r from-blue-500 to-indigo-600"
+                      className="bg-gradient-to-r from-blue-500 to-indigo-600 w-full sm:w-auto"
                     >
                       Continuar para Revisão
                     </Button>
                   </div>
+                </>
+              )}
             </div>
           )}
 
