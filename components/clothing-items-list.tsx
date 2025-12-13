@@ -420,7 +420,7 @@ export default function ClothingItemsList({
               </h2>
             </div>
             <p className="text-sm text-orange-700 mb-4">
-              Estas peças foram guardadas sem classificação completa. Clique em "Editar" para completar a informação.
+              Estas peças foram guardadas sem classificação completa. Clique em &quot;Editar&quot; para completar a informação.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {unclassifiedItems.map((item) => {
