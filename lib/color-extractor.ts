@@ -1,9 +1,6 @@
 /**
  * Sistema de detecção de cor dominante em imagens
- * Baseado nas melhores práticas:
- * - Conversão para espaço LAB (perceptualmente uniforme)
- * - K-means clustering para encontrar cores dominantes
- * - Matching com paleta de cores pré-definida
+ * Usa quantização de cores e matching com paleta LAB
  */
 
 // ============== TIPOS ==============
@@ -20,12 +17,6 @@ interface LAB {
   b: number
 }
 
-interface ColorCluster {
-  rgb: RGB
-  lab: LAB
-  count: number
-}
-
 interface NamedColor {
   name: string
   rgb: RGB
@@ -38,12 +29,12 @@ const COLOR_PALETTE: Array<{ name: string; rgb: RGB }> = [
   // Neutras
   { name: 'Branco', rgb: { r: 255, g: 255, b: 255 } },
   { name: 'Preto', rgb: { r: 0, g: 0, b: 0 } },
-  { name: 'Cinza Claro', rgb: { r: 192, g: 192, b: 192 } },
+  { name: 'Cinza Claro', rgb: { r: 200, g: 200, b: 200 } },
   { name: 'Cinza', rgb: { r: 128, g: 128, b: 128 } },
   { name: 'Cinza Escuro', rgb: { r: 64, g: 64, b: 64 } },
   
   // Vermelhos
-  { name: 'Vermelho', rgb: { r: 220, g: 20, b: 20 } },
+  { name: 'Vermelho', rgb: { r: 220, g: 30, b: 30 } },
   { name: 'Vermelho Escuro', rgb: { r: 139, g: 0, b: 0 } },
   { name: 'Bordô', rgb: { r: 128, g: 0, b: 32 } },
   
@@ -62,7 +53,7 @@ const COLOR_PALETTE: Array<{ name: string; rgb: RGB }> = [
   // Beges/Castanhos
   { name: 'Bege', rgb: { r: 245, g: 222, b: 179 } },
   { name: 'Creme', rgb: { r: 255, g: 253, b: 208 } },
-  { name: 'Castanho', rgb: { r: 139, g: 90, b: 43 } },
+  { name: 'Castanho', rgb: { r: 150, g: 100, b: 60 } },
   { name: 'Castanho Escuro', rgb: { r: 92, g: 64, b: 51 } },
   
   // Verdes
@@ -84,24 +75,17 @@ const COLOR_PALETTE: Array<{ name: string; rgb: RGB }> = [
   { name: 'Lilás', rgb: { r: 200, g: 162, b: 200 } },
 ]
 
-// Pre-calcular LAB para paleta
-const PALETTE_WITH_LAB: NamedColor[] = COLOR_PALETTE.map(c => ({
-  name: c.name,
-  rgb: c.rgb,
-  lab: rgbToLab(c.rgb)
-}))
-
 // ============== CONVERSÕES DE COR ==============
 
 /**
- * Converte RGB para XYZ (passo intermediário para LAB)
+ * Converte RGB para LAB (espaço perceptualmente uniforme)
  */
-function rgbToXyz(rgb: RGB): { x: number; y: number; z: number } {
+function rgbToLab(rgb: RGB): LAB {
+  // RGB para XYZ
   let r = rgb.r / 255
   let g = rgb.g / 255
   let b = rgb.b / 255
 
-  // Gamma correction
   r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92
   g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92
   b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92
@@ -110,50 +94,35 @@ function rgbToXyz(rgb: RGB): { x: number; y: number; z: number } {
   g *= 100
   b *= 100
 
-  return {
-    x: r * 0.4124564 + g * 0.3575761 + b * 0.1804375,
-    y: r * 0.2126729 + g * 0.7151522 + b * 0.0721750,
-    z: r * 0.0193339 + g * 0.1191920 + b * 0.9503041
-  }
-}
+  const x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375
+  const y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750
+  const z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041
 
-/**
- * Converte XYZ para LAB
- */
-function xyzToLab(xyz: { x: number; y: number; z: number }): LAB {
-  // D65 white point
+  // XYZ para LAB (D65)
   const refX = 95.047
   const refY = 100.000
   const refZ = 108.883
 
-  let x = xyz.x / refX
-  let y = xyz.y / refY
-  let z = xyz.z / refZ
+  let xr = x / refX
+  let yr = y / refY
+  let zr = z / refZ
 
   const epsilon = 0.008856
   const kappa = 903.3
 
-  x = x > epsilon ? Math.pow(x, 1/3) : (kappa * x + 16) / 116
-  y = y > epsilon ? Math.pow(y, 1/3) : (kappa * y + 16) / 116
-  z = z > epsilon ? Math.pow(z, 1/3) : (kappa * z + 16) / 116
+  xr = xr > epsilon ? Math.pow(xr, 1/3) : (kappa * xr + 16) / 116
+  yr = yr > epsilon ? Math.pow(yr, 1/3) : (kappa * yr + 16) / 116
+  zr = zr > epsilon ? Math.pow(zr, 1/3) : (kappa * zr + 16) / 116
 
   return {
-    l: 116 * y - 16,
-    a: 500 * (x - y),
-    b: 200 * (y - z)
+    l: 116 * yr - 16,
+    a: 500 * (xr - yr),
+    b: 200 * (yr - zr)
   }
 }
 
 /**
- * Converte RGB para LAB (espaço perceptualmente uniforme)
- */
-function rgbToLab(rgb: RGB): LAB {
-  return xyzToLab(rgbToXyz(rgb))
-}
-
-/**
- * Calcula distância Delta E entre duas cores LAB (CIE76)
- * Valores menores = cores mais similares
+ * Calcula distância Delta E entre duas cores LAB
  */
 function deltaE(lab1: LAB, lab2: LAB): number {
   return Math.sqrt(
@@ -163,141 +132,47 @@ function deltaE(lab1: LAB, lab2: LAB): number {
   )
 }
 
-// ============== K-MEANS CLUSTERING ==============
+// Pre-calcular LAB para paleta
+const PALETTE_WITH_LAB: NamedColor[] = COLOR_PALETTE.map(c => ({
+  name: c.name,
+  rgb: c.rgb,
+  lab: rgbToLab(c.rgb)
+}))
+
+// ============== QUANTIZAÇÃO DE CORES ==============
 
 /**
- * Inicializa centroids usando K-means++
+ * Quantiza cor para bucket (determinístico, sem aleatoriedade)
  */
-function initializeCentroids(pixels: RGB[], k: number): RGB[] {
-  const centroids: RGB[] = []
-  
-  // Primeiro centroid aleatório
-  const firstIdx = Math.floor(Math.random() * pixels.length)
-  centroids.push({ ...pixels[firstIdx] })
-  
-  // Restantes centroids com probabilidade proporcional à distância
-  for (let i = 1; i < k; i++) {
-    const distances: number[] = []
-    let totalDist = 0
-    
-    for (const pixel of pixels) {
-      let minDist = Infinity
-      for (const centroid of centroids) {
-        const dist = Math.pow(pixel.r - centroid.r, 2) +
-                     Math.pow(pixel.g - centroid.g, 2) +
-                     Math.pow(pixel.b - centroid.b, 2)
-        if (dist < minDist) minDist = dist
-      }
-      distances.push(minDist)
-      totalDist += minDist
-    }
-    
-    // Escolher próximo centroid com probabilidade proporcional
-    let threshold = Math.random() * totalDist
-    let cumulative = 0
-    for (let j = 0; j < pixels.length; j++) {
-      cumulative += distances[j]
-      if (cumulative >= threshold) {
-        centroids.push({ ...pixels[j] })
-        break
-      }
-    }
-  }
-  
-  return centroids
+function quantizeColor(r: number, g: number, b: number, levels: number): string {
+  const step = 256 / levels
+  const qr = Math.floor(r / step)
+  const qg = Math.floor(g / step)
+  const qb = Math.floor(b / step)
+  return `${qr},${qg},${qb}`
 }
 
 /**
- * K-means clustering para encontrar cores dominantes
+ * Verifica se é provavelmente cor de fundo
  */
-function kMeansClustering(pixels: RGB[], k: number, maxIterations: number = 10): ColorCluster[] {
-  if (pixels.length === 0) return []
-  if (pixels.length < k) k = pixels.length
+function isLikelyBackground(r: number, g: number, b: number): boolean {
+  const brightness = (r + g + b) / 3
+  const diff = Math.max(r, g, b) - Math.min(r, g, b)
   
-  let centroids = initializeCentroids(pixels, k)
+  // Branco ou quase branco (fundo típico)
+  if (brightness > 235 && diff < 30) return true
   
-  for (let iter = 0; iter < maxIterations; iter++) {
-    // Atribuir pixels aos clusters
-    const clusters: RGB[][] = Array.from({ length: k }, () => [])
-    
-    for (const pixel of pixels) {
-      let minDist = Infinity
-      let minIdx = 0
-      
-      for (let i = 0; i < centroids.length; i++) {
-        const dist = Math.pow(pixel.r - centroids[i].r, 2) +
-                     Math.pow(pixel.g - centroids[i].g, 2) +
-                     Math.pow(pixel.b - centroids[i].b, 2)
-        if (dist < minDist) {
-          minDist = dist
-          minIdx = i
-        }
-      }
-      
-      clusters[minIdx].push(pixel)
-    }
-    
-    // Atualizar centroids
-    const newCentroids: RGB[] = []
-    for (let i = 0; i < k; i++) {
-      if (clusters[i].length === 0) {
-        newCentroids.push(centroids[i])
-        continue
-      }
-      
-      let sumR = 0, sumG = 0, sumB = 0
-      for (const pixel of clusters[i]) {
-        sumR += pixel.r
-        sumG += pixel.g
-        sumB += pixel.b
-      }
-      
-      newCentroids.push({
-        r: Math.round(sumR / clusters[i].length),
-        g: Math.round(sumG / clusters[i].length),
-        b: Math.round(sumB / clusters[i].length)
-      })
-    }
-    
-    centroids = newCentroids
-  }
+  // Cinza muito claro
+  if (brightness > 220 && diff < 20) return true
   
-  // Contar pixels em cada cluster final
-  const clusterCounts: number[] = Array(k).fill(0)
-  for (const pixel of pixels) {
-    let minDist = Infinity
-    let minIdx = 0
-    
-    for (let i = 0; i < centroids.length; i++) {
-      const dist = Math.pow(pixel.r - centroids[i].r, 2) +
-                   Math.pow(pixel.g - centroids[i].g, 2) +
-                   Math.pow(pixel.b - centroids[i].b, 2)
-      if (dist < minDist) {
-        minDist = dist
-        minIdx = i
-      }
-    }
-    
-    clusterCounts[minIdx]++
-  }
-  
-  // Retornar clusters ordenados por frequência
-  const result: ColorCluster[] = centroids.map((rgb, i) => ({
-    rgb,
-    lab: rgbToLab(rgb),
-    count: clusterCounts[i]
-  }))
-  
-  result.sort((a, b) => b.count - a.count)
-  return result
+  return false
 }
-
-// ============== MATCHING COM PALETA ==============
 
 /**
  * Encontra o nome da cor mais próxima na paleta
  */
-function findClosestColorName(lab: LAB): string {
+function findClosestColorName(rgb: RGB): string {
+  const lab = rgbToLab(rgb)
   let minDist = Infinity
   let closestName = 'Desconhecido'
   
@@ -332,7 +207,7 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
           return
         }
         
-        // Redimensionar para processamento rápido
+        // Redimensionar
         const maxSize = 100
         const ratio = Math.min(maxSize / img.width, maxSize / img.height)
         canvas.width = Math.max(1, Math.floor(img.width * ratio))
@@ -345,75 +220,124 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
         const width = canvas.width
         const height = canvas.height
         
-        // Coletar pixels do centro (70% central para evitar bordas/fundo)
-        const marginX = Math.floor(width * 0.15)
-        const marginY = Math.floor(height * 0.15)
-        const centerPixels: RGB[] = []
+        // Quantizar e contar cores (usar centro 60% da imagem)
+        const marginX = Math.floor(width * 0.2)
+        const marginY = Math.floor(height * 0.2)
+        
+        const colorCounts = new Map<string, { r: number; g: number; b: number; count: number }>()
+        let totalPixels = 0
         
         for (let y = marginY; y < height - marginY; y++) {
           for (let x = marginX; x < width - marginX; x++) {
             const idx = (y * width + x) * 4
+            const r = pixels[idx]
+            const g = pixels[idx + 1]
+            const b = pixels[idx + 2]
             const a = pixels[idx + 3]
             
-            // Ignorar transparentes
             if (a < 128) continue
             
-            centerPixels.push({
-              r: pixels[idx],
-              g: pixels[idx + 1],
-              b: pixels[idx + 2]
-            })
-          }
-        }
-        
-        // Fallback: usar todos os pixels se centro não tem suficientes
-        if (centerPixels.length < 50) {
-          for (let i = 0; i < pixels.length; i += 4) {
-            if (pixels[i + 3] >= 128) {
-              centerPixels.push({
-                r: pixels[i],
-                g: pixels[i + 1],
-                b: pixels[i + 2]
-              })
+            totalPixels++
+            
+            // Quantizar para 8 níveis (32 tons por canal)
+            const key = quantizeColor(r, g, b, 8)
+            
+            if (colorCounts.has(key)) {
+              const entry = colorCounts.get(key)!
+              entry.r += r
+              entry.g += g
+              entry.b += b
+              entry.count++
+            } else {
+              colorCounts.set(key, { r, g, b, count: 1 })
             }
           }
         }
         
-        if (centerPixels.length === 0) {
+        // Fallback: usar todos os pixels
+        if (totalPixels < 50) {
+          colorCounts.clear()
+          totalPixels = 0
+          
+          for (let i = 0; i < pixels.length; i += 4) {
+            const r = pixels[i]
+            const g = pixels[i + 1]
+            const b = pixels[i + 2]
+            const a = pixels[i + 3]
+            
+            if (a < 128) continue
+            
+            totalPixels++
+            const key = quantizeColor(r, g, b, 8)
+            
+            if (colorCounts.has(key)) {
+              const entry = colorCounts.get(key)!
+              entry.r += r
+              entry.g += g
+              entry.b += b
+              entry.count++
+            } else {
+              colorCounts.set(key, { r, g, b, count: 1 })
+            }
+          }
+        }
+        
+        if (colorCounts.size === 0) {
           resolve(null)
           return
         }
         
-        // K-means com 5 clusters
-        const clusters = kMeansClustering(centerPixels, 5, 15)
+        // Converter para array e ordenar por frequência
+        const sortedColors = Array.from(colorCounts.values())
+          .map(entry => ({
+            r: Math.round(entry.r / entry.count),
+            g: Math.round(entry.g / entry.count),
+            b: Math.round(entry.b / entry.count),
+            count: entry.count
+          }))
+          .sort((a, b) => b.count - a.count)
         
-        if (clusters.length === 0) {
-          resolve(null)
-          return
-        }
+        // Encontrar a cor dominante (não-fundo)
+        let dominantColor: { r: number; g: number; b: number } | null = null
         
-        // Escolher a cor dominante
-        // Ignorar clusters que parecem fundo (branco/cinza muito claro com baixa saturação)
-        let dominantCluster = clusters[0]
-        
-        for (const cluster of clusters) {
-          const { r, g, b } = cluster.rgb
-          const brightness = (r + g + b) / 3
-          const diff = Math.max(r, g, b) - Math.min(r, g, b)
+        for (const color of sortedColors) {
+          // Se este cluster tem pelo menos 5% dos pixels e não é fundo
+          const percentage = color.count / totalPixels
           
-          // É fundo típico? (muito claro e sem saturação)
-          const isBackground = brightness > 230 && diff < 25
-          
-          // Se não é fundo e tem pelo menos 10% dos pixels, usar
-          const percentage = cluster.count / centerPixels.length
-          if (!isBackground && percentage >= 0.10) {
-            dominantCluster = cluster
+          if (percentage >= 0.05 && !isLikelyBackground(color.r, color.g, color.b)) {
+            dominantColor = color
             break
           }
         }
         
-        // Encontrar nome da cor na paleta
-        const colorName = findClosestColorName(dominantCluster.lab)
+        // Se não encontrou, usar a mais frequente mesmo que pareça fundo
+        if (!dominantColor && sortedColors.length > 0) {
+          // Tentar encontrar qualquer cor que não seja fundo
+          for (const color of sortedColors) {
+            if (!isLikelyBackground(color.r, color.g, color.b)) {
+              dominantColor = color
+              break
+            }
+          }
+          
+          // Se tudo parece fundo, usar a mais frequente
+          if (!dominantColor) {
+            dominantColor = sortedColors[0]
+          }
+        }
+        
+        if (!dominantColor) {
+          resolve(null)
+          return
+        }
+        
+        // Encontrar nome da cor na paleta usando LAB
+        const colorName = findClosestColorName({
+          r: dominantColor.r,
+          g: dominantColor.g,
+          b: dominantColor.b
+        })
+        
         resolve(colorName)
       } catch (error) {
         console.error('Erro ao extrair cor:', error)
