@@ -28,18 +28,7 @@ function rgbToHsv(r: number, g: number, b: number): { h: number; s: number; v: n
 }
 
 /**
- * Calcula a diferença entre duas cores RGB
- */
-function colorDistance(r1: number, g1: number, b1: number, r2: number, g2: number, b2: number): number {
-  return Math.sqrt(
-    Math.pow(r1 - r2, 2) +
-    Math.pow(g1 - g2, 2) +
-    Math.pow(b1 - b2, 2)
-  )
-}
-
-/**
- * Extrai a cor dominante de uma imagem usando análise avançada
+ * Extrai a cor dominante de uma imagem
  */
 export async function extractDominantColor(imageSrc: string): Promise<string | null> {
   return new Promise((resolve) => {
@@ -56,8 +45,7 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
           return
         }
         
-        // Usar tamanho maior para melhor precisão (200x200)
-        const maxSize = 200
+        const maxSize = 150
         const ratio = Math.min(maxSize / img.width, maxSize / img.height)
         canvas.width = img.width * ratio
         canvas.height = img.height * ratio
@@ -67,7 +55,7 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
         const pixels = imageData.data
         
-        // Coletar todos os pixels válidos
+        // Coletar pixels válidos
         const validPixels: Array<{ r: number; g: number; b: number }> = []
         
         for (let i = 0; i < pixels.length; i += 4) {
@@ -76,7 +64,6 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
           const b = pixels[i + 2]
           const a = pixels[i + 3]
           
-          // Ignorar apenas pixels completamente transparentes
           if (a < 50) continue
           
           validPixels.push({ r, g, b })
@@ -99,7 +86,6 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
         const avgG = Math.round(sumG / validPixels.length)
         const avgB = Math.round(sumB / validPixels.length)
         
-        // Usar análise RGB direta primeiro para cores neutras (mais preciso)
         const colorName = rgbToColorName(avgR, avgG, avgB)
         resolve(colorName)
       } catch (error) {
@@ -117,149 +103,158 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
 }
 
 /**
- * Converte RGB para nome de cor em português com análise multi-camadas
+ * Converte RGB para nome de cor em português
+ * Prioridade: Cores neutras primeiro, depois cores saturadas
  */
 function rgbToColorName(r: number, g: number, b: number): string {
-  // Análise RGB direta para cores neutras (mais preciso que HSV)
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
   const diff = max - min
   const brightness = (r + g + b) / 3
   
-  // ===== CAMADA 1: Cores Neutras (Preto, Branco, Cinza) =====
-  // Verificar se é uma cor neutra (diferença pequena entre componentes)
-  if (diff <= 20) {
-    // Branco: muito claro
-    if (brightness >= 240) return 'Branco'
-    // Preto: muito escuro
-    if (brightness <= 30) return 'Preto'
-    // Cinza: médio
+  // ========== PRIORIDADE 1: CORES NEUTRAS (RGB direto) ==========
+  // Branco: todos os componentes muito altos e próximos
+  if (r >= 230 && g >= 230 && b >= 230 && diff <= 30) {
+    return 'Branco'
+  }
+  
+  // Preto: todos os componentes muito baixos e próximos
+  if (r <= 50 && g <= 50 && b <= 50 && diff <= 30) {
+    return 'Preto'
+  }
+  
+  // Cinza: componentes equilibrados, brilho médio
+  if (diff <= 30 && brightness >= 60 && brightness <= 200) {
     return 'Cinza'
   }
   
-  // ===== CAMADA 2: Análise HSV para cores saturadas =====
+  // ========== PRIORIDADE 2: Análise HSV ==========
   const hsv = rgbToHsv(r, g, b)
   const { h, s, v } = hsv
   
-  // Cores muito escuras (preto com leve tom de cor)
-  if (v < 20) return 'Preto'
+  // Preto (mesmo com leve tom): brilho muito baixo
+  if (v < 25) {
+    return 'Preto'
+  }
   
-  // Cores muito claras com baixa saturação (branco com leve tom)
-  if (v > 90 && s < 15) return 'Branco'
+  // Branco (mesmo com leve tom): brilho muito alto e baixa saturação
+  if (v > 85 && s < 20) {
+    return 'Branco'
+  }
   
-  // Cores com baixa saturação mas não neutras (tons pastéis/terra)
-  if (s < 25) {
-    if (v > 75) return 'Bege'
-    if (v < 35) return 'Castanho'
-    // Cinza colorido
+  // Cinza: baixa saturação e brilho médio
+  if (s < 20 && v >= 25 && v <= 85) {
     return 'Cinza'
   }
   
-  // ===== CAMADA 3: Cores Saturadas por Matiz (Hue) =====
+  // ========== PRIORIDADE 3: Cores com baixa saturação (tons pastéis/terra) ==========
+  if (s < 30) {
+    if (v > 70) return 'Bege'
+    if (v < 40) return 'Castanho'
+    return 'Cinza'
+  }
   
-  // Vermelho: 0-20° e 340-360°
-  if ((h >= 0 && h < 20) || (h >= 340 && h <= 360)) {
-    // Vermelho puro: alta saturação
-    if (s > 60) {
-      if (v > 30) return 'Vermelho'
-      return 'Vermelho' // Vermelho escuro ainda é vermelho
-    }
-    // Vermelho com baixa saturação pode ser rosa ou castanho
+  // ========== PRIORIDADE 4: Cores saturadas por matiz ==========
+  
+  // Vermelho: 0-25° e 335-360°
+  if ((h >= 0 && h < 25) || (h >= 335 && h <= 360)) {
+    // Bordô: vermelho muito escuro
+    if (v < 35 && s > 40) return 'Bordô'
+    // Vermelho escuro mas não bordô
+    if (v < 50 && s > 50) return 'Vermelho'
+    // Vermelho normal
+    if (s > 50) return 'Vermelho'
+    // Vermelho com baixa saturação pode ser rosa
     if (v > 60) return 'Rosa'
-    if (v < 50) return 'Castanho'
     return 'Vermelho'
   }
   
-  // Laranja: 20-40°
-  if (h >= 20 && h < 40) {
-    if (s > 50 && v > 40) return 'Laranja'
+  // Laranja: 25-45°
+  if (h >= 25 && h < 45) {
+    if (s > 45 && v > 35) return 'Laranja'
     if (v < 40) return 'Castanho'
     return 'Laranja'
   }
   
-  // Amarelo: 40-70°
-  if (h >= 40 && h < 70) {
-    if (s > 40) return 'Amarelo'
+  // Amarelo: 45-70°
+  if (h >= 45 && h < 70) {
+    if (s > 35) return 'Amarelo'
     return 'Bege'
   }
   
   // Verde: 70-160°
   if (h >= 70 && h < 160) {
-    if (v > 70 && s > 50) return 'Verde Claro'
-    if (s > 40) return 'Verde'
+    if (v > 65 && s > 45) return 'Verde Claro'
+    if (s > 35) return 'Verde'
     return 'Verde'
   }
   
   // Ciano/Azul claro: 160-200°
   if (h >= 160 && h < 200) {
-    if (v > 70) return 'Azul Claro'
+    if (v > 65) return 'Azul Claro'
     return 'Azul'
   }
   
   // Azul: 200-260°
   if (h >= 200 && h < 260) {
-    if (v > 70 && s > 50) return 'Azul Claro'
+    if (v > 65 && s > 45) return 'Azul Claro'
     return 'Azul'
   }
   
-  // Roxo/Violeta: 260-320°
-  if (h >= 260 && h < 320) {
-    if (s > 40) return 'Roxo'
-    if (v < 50) return 'Roxo'
+  // Roxo/Violeta: 260-310°
+  if (h >= 260 && h < 310) {
+    if (s > 35) return 'Roxo'
     return 'Roxo'
   }
   
-  // Rosa: 320-340°
-  if (h >= 320 && h < 340) {
-    if (s > 50 && v > 50) return 'Rosa'
-    if (v > 70) return 'Rosa'
+  // Rosa: 310-335°
+  if (h >= 310 && h < 335) {
+    if (s > 40 && v > 45) return 'Rosa'
+    if (v > 65) return 'Rosa'
     return 'Roxo'
   }
   
-  // ===== CAMADA 4: Fallback - Análise RGB por componente dominante =====
-  
-  // Determinar qual componente é dominante
+  // ========== PRIORIDADE 5: Fallback RGB (apenas se não foi identificado) ==========
+  // Se chegou aqui, usar análise RGB simples
   const rDominance = r - Math.max(g, b)
   const gDominance = g - Math.max(r, b)
   const bDominance = b - Math.max(r, g)
   
-  // Vermelho dominante
-  if (rDominance > 50) {
-    if (g > 150 && b < 100) return 'Laranja'
-    if (g > 120 && b < 80) return 'Amarelo'
-    if (r > 180 && g < 80 && b < 80) return 'Vermelho'
-    if (r > 120) return 'Vermelho'
+  // Vermelho dominante (mas verificar se não é muito escuro = bordô)
+  if (rDominance > 40) {
+    if (brightness < 60) return 'Bordô'
+    if (g > 140 && b < 100) return 'Laranja'
+    if (g > 110 && b < 80) return 'Amarelo'
     return 'Vermelho'
   }
   
   // Verde dominante
-  if (gDominance > 50) {
-    if (g > 180 && r < 100 && b < 100) return 'Verde'
-    if (g > 120) return 'Verde'
+  if (gDominance > 40) {
     return 'Verde'
   }
   
   // Azul dominante
-  if (bDominance > 50) {
-    if (b > 180 && r < 100 && g < 100) return 'Azul'
-    if (b > 120) return 'Azul'
+  if (bDominance > 40) {
     return 'Azul'
   }
   
-  // Cores equilibradas mas não neutras
-  if (diff < 50) {
+  // Se nenhum componente é claramente dominante, é uma cor neutra
+  if (diff < 40) {
     if (brightness > 200) return 'Branco'
     if (brightness < 60) return 'Preto'
     return 'Cinza'
   }
   
-  // Último recurso: cor baseada no componente mais alto
+  // Último recurso: componente mais alto (mas com verificações)
   if (r >= g && r >= b) {
-    if (r > 200) return 'Vermelho'
+    if (brightness < 60) return 'Bordô'
+    if (brightness > 200) return 'Branco'
     return 'Vermelho'
   } else if (g >= r && g >= b) {
+    if (brightness < 60) return 'Verde'
     return 'Verde'
   } else {
+    if (brightness < 60) return 'Azul'
     return 'Azul'
   }
 }
