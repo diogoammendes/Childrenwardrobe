@@ -21,6 +21,7 @@ import {
 import { CLOTHING_CATEGORIES, getSubcategories, type ClothingCategory } from '@/lib/clothing-categories'
 import { Camera, Upload, X, Check, Trash2, ArrowLeft } from 'lucide-react'
 import CameraCapture from './camera-capture'
+import { extractDominantColor } from '@/lib/color-extractor'
 
 type SizeOption = {
   id: string
@@ -83,28 +84,61 @@ export default function AddMultipleClothingItemsDialog({
     setError('')
   }
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (!files) return
 
     const newPhotos: string[] = []
     const fileArray = Array.from(files)
 
-    fileArray.forEach((file) => {
+    for (const file of fileArray) {
       const reader = new FileReader()
-      reader.onloadend = () => {
-        newPhotos.push(reader.result as string)
-        if (newPhotos.length === fileArray.length) {
-          setPhotos((prev) => [...prev, ...newPhotos])
+      const photoData = await new Promise<string>((resolve) => {
+        reader.onloadend = () => {
+          resolve(reader.result as string)
+        }
+        reader.readAsDataURL(file)
+      })
+      
+      newPhotos.push(photoData)
+      
+      // Analisar cor apenas se o campo de cores estiver vazio
+      if (!prefillData.colors || prefillData.colors.trim() === '') {
+        try {
+          const dominantColor = await extractDominantColor(photoData)
+          if (dominantColor) {
+            setPrefillData(prev => ({
+              ...prev,
+              colors: prev.colors ? `${prev.colors}, ${dominantColor}` : dominantColor
+            }))
+          }
+        } catch (error) {
+          console.error('Erro ao analisar cor:', error)
         }
       }
-      reader.readAsDataURL(file)
-    })
+    }
+    
+    setPhotos((prev) => [...prev, ...newPhotos])
   }
 
-  const handleCameraCapture = (capturedPhotos: string[]) => {
+  const handleCameraCapture = async (capturedPhotos: string[]) => {
     setPhotos((prev) => [...prev, ...capturedPhotos])
     setShowCamera(false)
+    
+    // Analisar cor da primeira foto se o campo estiver vazio
+    if ((!prefillData.colors || prefillData.colors.trim() === '') && capturedPhotos.length > 0) {
+      try {
+        const dominantColor = await extractDominantColor(capturedPhotos[0])
+        if (dominantColor) {
+          setPrefillData(prev => ({
+            ...prev,
+            colors: dominantColor
+          }))
+        }
+      } catch (error) {
+        console.error('Erro ao analisar cor:', error)
+      }
+    }
   }
 
   const removePhoto = (index: number) => {

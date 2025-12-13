@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog'
 import { CLOTHING_CATEGORIES, getSubcategories, type ClothingCategory } from '@/lib/clothing-categories'
 import PhotoUpload from '@/components/photo-upload'
+import { extractDominantColor } from '@/lib/color-extractor'
 
 type SizeOption = {
   id: string
@@ -107,6 +108,17 @@ export default function AddClothingItemDialog({
   const subcategories = formData.category
     ? getSubcategories(formData.category)
     : {}
+
+  // Analisar cor quando foto é carregada
+  useEffect(() => {
+    if (formData.photo && formData.photo.startsWith('data:') && !formData.colors) {
+      extractDominantColor(formData.photo).then((color) => {
+        if (color) {
+          setFormData(prev => ({ ...prev, colors: color }))
+        }
+      }).catch(console.error)
+    }
+  }, [formData.photo, formData.colors])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
