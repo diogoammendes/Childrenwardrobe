@@ -164,15 +164,16 @@ model ChildSharedWith {
 model ClothingItem {
   id              String          @id @default(cuid())
   category        ClothingCategory
-  subcategory     String // JSON string para diferentes tipos de subcategorias
-  size            String
+  subcategory     String? // JSON string para diferentes tipos de subcategorias
+  size            String?
   sizeOptionId    String?
-  colors          String // JSON array de cores
+  colors          String? // JSON array de cores
   photo           String? // URL da foto
   status          ItemStatus      @default(IN_USE)
   disposition     ItemDisposition @default(KEEP)
   isSet           Boolean         @default(false)
   setItemId       String? // ID do item do conjunto (se for conjunto)
+  needsClassification Boolean    @default(false) // Marca itens que precisam ser classificados
   childId         String
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt

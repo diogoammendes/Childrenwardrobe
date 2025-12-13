@@ -104,19 +104,42 @@ export async function PATCH(
       nextSizeLabel = size
     }
 
+    // Determinar valores finais para verificar se precisa classificação
+    const finalSubcategory = subcategory !== undefined ? subcategory : item.subcategory
+    const finalColors = colors !== undefined ? JSON.stringify(colors) : item.colors
+    const finalSize = nextSizeLabel
+    const finalSizeOptionId = nextSizeOptionId
+
+    // Verificar se todos os campos obrigatórios estão preenchidos
+    const hasSubcategory = finalSubcategory && finalSubcategory.trim() !== ''
+    let hasColors = false
+    if (finalColors) {
+      try {
+        const parsedColors = JSON.parse(finalColors)
+        hasColors = Array.isArray(parsedColors) && parsedColors.length > 0
+      } catch {
+        hasColors = false
+      }
+    }
+    const hasSize = (finalSizeOptionId && finalSizeOptionId.trim() !== '') || (finalSize && finalSize.trim() !== '')
+    
+    // Se todos os campos estiverem preenchidos, não precisa mais classificação
+    const needsClassification = !hasSubcategory || !hasColors || !hasSize
+
     const updated = await prisma.clothingItem.update({
       where: { id: params.id },
       data: {
         category: category !== undefined ? category : item.category,
-        subcategory: subcategory !== undefined ? subcategory : item.subcategory,
-        size: nextSizeLabel,
-        sizeOptionId: nextSizeOptionId,
-        colors: colors !== undefined ? JSON.stringify(colors) : item.colors,
+        subcategory: finalSubcategory,
+        size: finalSize,
+        sizeOptionId: finalSizeOptionId,
+        colors: finalColors,
         photo: photo !== undefined ? photo : item.photo,
         status: status !== undefined ? status : item.status,
         disposition: disposition !== undefined ? disposition : item.disposition,
         isSet: isSet !== undefined ? isSet : item.isSet,
         setItemId: normalizedSetItemId,
+        needsClassification,
       },
     })
 

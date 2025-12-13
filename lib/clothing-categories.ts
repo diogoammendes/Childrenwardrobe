@@ -80,3 +80,6 @@ export function getSubcategoryLabel(category: ClothingCategory, subcategory: str
   return CLOTHING_CATEGORIES[category]?.subcategories[subcategory as keyof typeof CLOTHING_CATEGORIES[typeof category]['subcategories']] || subcategory
 }
 
+
+
+

@@ -28,11 +28,13 @@ export async function POST(request: NextRequest) {
       isSet,
       setItemId,
       childId,
+      needsClassification, // Permite definir explicitamente se precisa classificação
     } = body
 
-    if (!category || !subcategory || !colors || !childId) {
+    // Apenas categoria e childId são obrigatórios
+    if (!category || !childId) {
       return NextResponse.json(
-        { error: 'Campos obrigatórios em falta' },
+        { error: 'Categoria e criança são obrigatórios' },
         { status: 400 }
       )
     }
@@ -65,10 +67,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let finalSize = size
-    let finalSizeOptionId: string | null = sizeOptionId || null
+    // Determinar se precisa classificação
+    // Precisa classificação se: subcategory, colors ou size não estiverem preenchidos
+    const hasSubcategory = subcategory && subcategory.trim() !== ''
+    const hasColors = colors && Array.isArray(colors) && colors.length > 0
+    const hasSize = (sizeOptionId && sizeOptionId.trim() !== '') || (size && size.trim() !== '')
+    
+    const itemNeedsClassification = needsClassification !== undefined 
+      ? needsClassification 
+      : !hasSubcategory || !hasColors || !hasSize
 
-    if (sizeOptionId) {
+    let finalSize: string | null = null
+    let finalSizeOptionId: string | null = null
+
+    if (sizeOptionId && sizeOptionId.trim() !== '') {
       const option = await prisma.sizeOption.findUnique({
         where: { id: sizeOptionId },
       })
@@ -82,25 +94,45 @@ export async function POST(request: NextRequest) {
 
       finalSize = option.label
       finalSizeOptionId = option.id
-    } else if (!size || size.trim() === '') {
-      return NextResponse.json(
-        { error: 'Tamanho é obrigatório' },
-        { status: 400 }
-      )
+    } else if (size && size.trim() !== '') {
+      finalSize = size.trim()
+    }
+
+    // Normalizar cores: se for array, converter para JSON; se for string vazia, null
+    let finalColors: string | null = null
+    if (colors) {
+      if (Array.isArray(colors) && colors.length > 0) {
+        finalColors = JSON.stringify(colors)
+      } else if (typeof colors === 'string' && colors.trim() !== '') {
+        // Se for string, tentar parsear ou usar como array
+        try {
+          const parsed = JSON.parse(colors)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            finalColors = colors
+          }
+        } catch {
+          // Se não for JSON válido, tratar como string separada por vírgulas
+          const colorsArray = colors.split(',').map(c => c.trim()).filter(c => c.length > 0)
+          if (colorsArray.length > 0) {
+            finalColors = JSON.stringify(colorsArray)
+          }
+        }
+      }
     }
 
     const item = await prisma.clothingItem.create({
       data: {
         category,
-        subcategory,
+        subcategory: hasSubcategory ? subcategory : null,
         size: finalSize,
         sizeOptionId: finalSizeOptionId,
-        colors: JSON.stringify(colors),
+        colors: finalColors,
         photo: photo || null,
         status: status || 'IN_USE',
         disposition: disposition || 'KEEP',
         isSet: isSet || false,
         setItemId: normalizedSetItemId,
+        needsClassification: itemNeedsClassification,
         childId,
       },
     })

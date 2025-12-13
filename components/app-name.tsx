@@ -8,3 +8,6 @@ export default async function AppName() {
   return config?.value || 'Children Wardrobe'
 }
 
+
+
+

@@ -29,3 +29,6 @@ npm run dev
 
 A aplicação está configurada para deploy no Railway.
 
+
+
+

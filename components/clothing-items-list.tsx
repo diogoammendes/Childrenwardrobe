@@ -120,8 +120,17 @@ export default function ClothingItemsList({
     })
   }, [items, filters, searchQuery, searchCriteria, sizeOptions])
 
+  // Separar items que precisam classificação
+  const unclassifiedItems = useMemo(() => {
+    return filteredItems.filter((item) => item.needsClassification === true)
+  }, [filteredItems])
+
+  const classifiedItems = useMemo(() => {
+    return filteredItems.filter((item) => !item.needsClassification)
+  }, [filteredItems])
+
   const groupedItems = useMemo(() => {
-    return filteredItems.reduce((acc, item) => {
+    return classifiedItems.reduce((acc, item) => {
       const category = item.category as ClothingCategory
       if (!acc[category]) {
         acc[category] = []
@@ -129,7 +138,7 @@ export default function ClothingItemsList({
       acc[category].push(item)
       return acc
     }, {} as Record<string, any[]>)
-  }, [filteredItems])
+  }, [classifiedItems])
 
   const hasSearchQuery = searchQuery.trim() !== ''
   const hasActiveFilters = Object.values(filters).some((v) => v !== '') || hasSearchQuery
@@ -397,6 +406,95 @@ export default function ClothingItemsList({
           </div>
         )}
       </div>
+
+      {/* Peças por Classificar */}
+      {unclassifiedItems.length > 0 && (
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg shadow-lg border-2 border-orange-300">
+          <div className="p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-orange-800 flex items-center gap-2">
+                <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                  {unclassifiedItems.length}
+                </span>
+                Peças por Classificar
+              </h2>
+            </div>
+            <p className="text-sm text-orange-700 mb-4">
+              Estas peças foram guardadas sem classificação completa. Clique em "Editar" para completar a informação.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {unclassifiedItems.map((item) => {
+                let colors: string[] = []
+                try {
+                  colors = JSON.parse(item.colors || '[]')
+                } catch {
+                  colors = []
+                }
+
+                return (
+                  <div
+                    key={item.id}
+                    className="border-2 border-orange-300 rounded-lg p-3 sm:p-4 bg-white hover:shadow-md transition-shadow overflow-hidden"
+                  >
+                    {item.photo && (
+                      <img
+                        src={item.photo}
+                        alt="Peça por classificar"
+                        className="w-full h-40 sm:h-48 object-cover rounded mb-3"
+                      />
+                    )}
+                    <div className="space-y-2 min-w-0">
+                      <div>
+                        <p className="font-semibold text-gray-800 text-sm sm:text-base break-words">
+                          {getCategoryLabel(item.category as ClothingCategory)}
+                        </p>
+                        {item.subcategory && (
+                          <p className="text-xs sm:text-sm text-gray-600 break-words">
+                            {getSubcategoryLabel(
+                              item.category as ClothingCategory,
+                              item.subcategory
+                            )}
+                          </p>
+                        )}
+                        {!item.subcategory && (
+                          <p className="text-xs text-orange-600 italic">Subcategoria não definida</p>
+                        )}
+                        <p className="text-xs sm:text-sm text-gray-600 break-words">
+                          Tamanho: {item.sizeOption?.label || item.size || '—'}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-600 break-words">
+                          Cores: {colors.length > 0 ? colors.join(', ') : 'Não definidas'}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingItem(item)}
+                          className="flex-1 sm:flex-none border-orange-500 text-orange-600 hover:bg-orange-50"
+                        >
+                          <Edit className="h-3 w-3 sm:mr-1" />
+                          <span className="hidden sm:inline">Completar Classificação</span>
+                          <span className="sm:hidden">Editar</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(item.id)}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Trash2 className="h-3 w-3 sm:mr-1" />
+                          <span className="hidden sm:inline">Eliminar</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Resultados */}
       {filteredItems.length === 0 ? (

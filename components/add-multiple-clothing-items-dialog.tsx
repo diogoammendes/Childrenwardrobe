@@ -140,29 +140,36 @@ export default function AddMultipleClothingItemsDialog({
     )
   }
 
-  const createItem = async (item: PendingItem) => {
-    if (!item.subcategory || !item.colors) {
-      setError('Preencha subcategoria e cores')
-      return
-    }
+  const createItem = async (item: PendingItem, skipValidation = false) => {
+    // Se não for para saltar validação, validar campos obrigatórios
+    if (!skipValidation) {
+      if (!item.subcategory || !item.colors) {
+        setError('Preencha subcategoria e cores')
+        return
+      }
 
-    // Validar que pelo menos um tamanho foi preenchido
-    if (!item.sizeOptionId && !item.size?.trim()) {
-      setError('Preencha pelo menos um tamanho (lista ou texto livre)')
-      return
+      // Validar que pelo menos um tamanho foi preenchido
+      if (!item.sizeOptionId && !item.size?.trim()) {
+        setError('Preencha pelo menos um tamanho (lista ou texto livre)')
+        return
+      }
     }
 
     setCreatingItems((prev) => new Set(prev).add(item.id))
     setError('')
 
     try {
-      const colorsArray = item.colors
-        .split(',')
-        .map((c) => c.trim())
-        .filter((c) => c.length > 0)
-
-      if (colorsArray.length === 0) {
-        throw new Error('Adicione pelo menos uma cor')
+      // Processar cores: se houver, converter para array; se não, null
+      let colorsArray: string[] | null = null
+      if (item.colors && item.colors.trim() !== '') {
+        colorsArray = item.colors
+          .split(',')
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0)
+        
+        if (colorsArray.length === 0) {
+          colorsArray = null
+        }
       }
 
       // Normalizar sizeOptionId: __none__ vira null
@@ -173,7 +180,7 @@ export default function AddMultipleClothingItemsDialog({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           category,
-          subcategory: item.subcategory,
+          subcategory: item.subcategory || null,
           size: item.size?.trim() || null,
           sizeOptionId: normalizedSizeOptionId,
           colors: colorsArray,
@@ -183,6 +190,7 @@ export default function AddMultipleClothingItemsDialog({
           isSet: false,
           setItemId: null,
           childId,
+          needsClassification: skipValidation || !item.subcategory || !colorsArray || (!normalizedSizeOptionId && !item.size?.trim()),
         }),
       })
 
@@ -204,6 +212,11 @@ export default function AddMultipleClothingItemsDialog({
         return next
       })
     }
+  }
+
+  // Função para guardar item sem classificação completa
+  const saveItemWithoutClassification = async (item: PendingItem) => {
+    await createItem(item, true)
   }
 
   const discardItem = (item: PendingItem) => {
@@ -570,6 +583,23 @@ export default function AddMultipleClothingItemsDialog({
                                   <>
                                     <Check className="mr-1 h-3 w-3" />
                                     Criar
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => saveItemWithoutClassification(item)}
+                                disabled={creatingItems.has(item.id)}
+                                variant="outline"
+                                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                              >
+                                {creatingItems.has(item.id) ? (
+                                  'A guardar...'
+                                ) : (
+                                  <>
+                                    <Check className="mr-1 h-3 w-3" />
+                                    <span className="hidden sm:inline">Guardar sem classificar</span>
+                                    <span className="sm:hidden">Guardar</span>
                                   </>
                                 )}
                               </Button>
