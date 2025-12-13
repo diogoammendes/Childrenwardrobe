@@ -1,85 +1,318 @@
 /**
- * Converte RGB para HSV
+ * Sistema de detecção de cor dominante em imagens
+ * Baseado nas melhores práticas:
+ * - Conversão para espaço LAB (perceptualmente uniforme)
+ * - K-means clustering para encontrar cores dominantes
+ * - Matching com paleta de cores pré-definida
  */
-function rgbToHsv(r: number, g: number, b: number): { h: number; s: number; v: number } {
-  r /= 255
-  g /= 255
-  b /= 255
 
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const diff = max - min
+// ============== TIPOS ==============
 
-  let h = 0
-  const s = max === 0 ? 0 : diff / max
-  const v = max
+interface RGB {
+  r: number
+  g: number
+  b: number
+}
 
-  if (diff !== 0) {
-    if (max === r) {
-      h = ((g - b) / diff + (g < b ? 6 : 0)) / 6
-    } else if (max === g) {
-      h = ((b - r) / diff + 2) / 6
-    } else {
-      h = ((r - g) / diff + 4) / 6
-    }
+interface LAB {
+  l: number
+  a: number
+  b: number
+}
+
+interface ColorCluster {
+  rgb: RGB
+  lab: LAB
+  count: number
+}
+
+interface NamedColor {
+  name: string
+  rgb: RGB
+  lab: LAB
+}
+
+// ============== PALETA DE CORES ==============
+
+const COLOR_PALETTE: Array<{ name: string; rgb: RGB }> = [
+  // Neutras
+  { name: 'Branco', rgb: { r: 255, g: 255, b: 255 } },
+  { name: 'Preto', rgb: { r: 0, g: 0, b: 0 } },
+  { name: 'Cinza Claro', rgb: { r: 192, g: 192, b: 192 } },
+  { name: 'Cinza', rgb: { r: 128, g: 128, b: 128 } },
+  { name: 'Cinza Escuro', rgb: { r: 64, g: 64, b: 64 } },
+  
+  // Vermelhos
+  { name: 'Vermelho', rgb: { r: 220, g: 20, b: 20 } },
+  { name: 'Vermelho Escuro', rgb: { r: 139, g: 0, b: 0 } },
+  { name: 'Bordô', rgb: { r: 128, g: 0, b: 32 } },
+  
+  // Rosas
+  { name: 'Rosa', rgb: { r: 255, g: 105, b: 180 } },
+  { name: 'Rosa Claro', rgb: { r: 255, g: 182, b: 193 } },
+  
+  // Laranjas
+  { name: 'Laranja', rgb: { r: 255, g: 140, b: 0 } },
+  { name: 'Coral', rgb: { r: 255, g: 127, b: 80 } },
+  
+  // Amarelos
+  { name: 'Amarelo', rgb: { r: 255, g: 220, b: 0 } },
+  { name: 'Dourado', rgb: { r: 218, g: 165, b: 32 } },
+  
+  // Beges/Castanhos
+  { name: 'Bege', rgb: { r: 245, g: 222, b: 179 } },
+  { name: 'Creme', rgb: { r: 255, g: 253, b: 208 } },
+  { name: 'Castanho', rgb: { r: 139, g: 90, b: 43 } },
+  { name: 'Castanho Escuro', rgb: { r: 92, g: 64, b: 51 } },
+  
+  // Verdes
+  { name: 'Verde', rgb: { r: 34, g: 139, b: 34 } },
+  { name: 'Verde Claro', rgb: { r: 144, g: 238, b: 144 } },
+  { name: 'Verde Escuro', rgb: { r: 0, g: 100, b: 0 } },
+  { name: 'Verde Oliva', rgb: { r: 128, g: 128, b: 0 } },
+  
+  // Azuis
+  { name: 'Azul', rgb: { r: 30, g: 80, b: 200 } },
+  { name: 'Azul Claro', rgb: { r: 135, g: 206, b: 235 } },
+  { name: 'Azul Escuro', rgb: { r: 0, g: 0, b: 139 } },
+  { name: 'Azul Marinho', rgb: { r: 0, g: 0, b: 80 } },
+  { name: 'Turquesa', rgb: { r: 64, g: 224, b: 208 } },
+  
+  // Roxos
+  { name: 'Roxo', rgb: { r: 128, g: 0, b: 128 } },
+  { name: 'Violeta', rgb: { r: 148, g: 0, b: 211 } },
+  { name: 'Lilás', rgb: { r: 200, g: 162, b: 200 } },
+]
+
+// Pre-calcular LAB para paleta
+const PALETTE_WITH_LAB: NamedColor[] = COLOR_PALETTE.map(c => ({
+  name: c.name,
+  rgb: c.rgb,
+  lab: rgbToLab(c.rgb)
+}))
+
+// ============== CONVERSÕES DE COR ==============
+
+/**
+ * Converte RGB para XYZ (passo intermediário para LAB)
+ */
+function rgbToXyz(rgb: RGB): { x: number; y: number; z: number } {
+  let r = rgb.r / 255
+  let g = rgb.g / 255
+  let b = rgb.b / 255
+
+  // Gamma correction
+  r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92
+  g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92
+  b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92
+
+  r *= 100
+  g *= 100
+  b *= 100
+
+  return {
+    x: r * 0.4124564 + g * 0.3575761 + b * 0.1804375,
+    y: r * 0.2126729 + g * 0.7151522 + b * 0.0721750,
+    z: r * 0.0193339 + g * 0.1191920 + b * 0.9503041
   }
-
-  return { h: h * 360, s: s * 100, v: v * 100 }
 }
 
 /**
- * Agrupa cores similares e retorna os clusters ordenados por frequência
+ * Converte XYZ para LAB
  */
-function clusterColors(pixels: Array<{ r: number; g: number; b: number }>): Array<{ r: number; g: number; b: number; count: number }> {
-  const buckets = new Map<string, { r: number; g: number; b: number; count: number }>()
+function xyzToLab(xyz: { x: number; y: number; z: number }): LAB {
+  // D65 white point
+  const refX = 95.047
+  const refY = 100.000
+  const refZ = 108.883
+
+  let x = xyz.x / refX
+  let y = xyz.y / refY
+  let z = xyz.z / refZ
+
+  const epsilon = 0.008856
+  const kappa = 903.3
+
+  x = x > epsilon ? Math.pow(x, 1/3) : (kappa * x + 16) / 116
+  y = y > epsilon ? Math.pow(y, 1/3) : (kappa * y + 16) / 116
+  z = z > epsilon ? Math.pow(z, 1/3) : (kappa * z + 16) / 116
+
+  return {
+    l: 116 * y - 16,
+    a: 500 * (x - y),
+    b: 200 * (y - z)
+  }
+}
+
+/**
+ * Converte RGB para LAB (espaço perceptualmente uniforme)
+ */
+function rgbToLab(rgb: RGB): LAB {
+  return xyzToLab(rgbToXyz(rgb))
+}
+
+/**
+ * Calcula distância Delta E entre duas cores LAB (CIE76)
+ * Valores menores = cores mais similares
+ */
+function deltaE(lab1: LAB, lab2: LAB): number {
+  return Math.sqrt(
+    Math.pow(lab1.l - lab2.l, 2) +
+    Math.pow(lab1.a - lab2.a, 2) +
+    Math.pow(lab1.b - lab2.b, 2)
+  )
+}
+
+// ============== K-MEANS CLUSTERING ==============
+
+/**
+ * Inicializa centroids usando K-means++
+ */
+function initializeCentroids(pixels: RGB[], k: number): RGB[] {
+  const centroids: RGB[] = []
   
-  for (const pixel of pixels) {
-    // Quantizar para 8 níveis (32 = 256/8)
-    const qR = Math.floor(pixel.r / 32) * 32
-    const qG = Math.floor(pixel.g / 32) * 32
-    const qB = Math.floor(pixel.b / 32) * 32
-    const key = `${qR},${qG},${qB}`
+  // Primeiro centroid aleatório
+  const firstIdx = Math.floor(Math.random() * pixels.length)
+  centroids.push({ ...pixels[firstIdx] })
+  
+  // Restantes centroids com probabilidade proporcional à distância
+  for (let i = 1; i < k; i++) {
+    const distances: number[] = []
+    let totalDist = 0
     
-    if (buckets.has(key)) {
-      const bucket = buckets.get(key)!
-      bucket.r += pixel.r
-      bucket.g += pixel.g
-      bucket.b += pixel.b
-      bucket.count++
-    } else {
-      buckets.set(key, { r: pixel.r, g: pixel.g, b: pixel.b, count: 1 })
+    for (const pixel of pixels) {
+      let minDist = Infinity
+      for (const centroid of centroids) {
+        const dist = Math.pow(pixel.r - centroid.r, 2) +
+                     Math.pow(pixel.g - centroid.g, 2) +
+                     Math.pow(pixel.b - centroid.b, 2)
+        if (dist < minDist) minDist = dist
+      }
+      distances.push(minDist)
+      totalDist += minDist
+    }
+    
+    // Escolher próximo centroid com probabilidade proporcional
+    let threshold = Math.random() * totalDist
+    let cumulative = 0
+    for (let j = 0; j < pixels.length; j++) {
+      cumulative += distances[j]
+      if (cumulative >= threshold) {
+        centroids.push({ ...pixels[j] })
+        break
+      }
     }
   }
   
-  // Calcular média de cada bucket
-  const clusters = Array.from(buckets.values()).map(b => ({
-    r: Math.round(b.r / b.count),
-    g: Math.round(b.g / b.count),
-    b: Math.round(b.b / b.count),
-    count: b.count
+  return centroids
+}
+
+/**
+ * K-means clustering para encontrar cores dominantes
+ */
+function kMeansClustering(pixels: RGB[], k: number, maxIterations: number = 10): ColorCluster[] {
+  if (pixels.length === 0) return []
+  if (pixels.length < k) k = pixels.length
+  
+  let centroids = initializeCentroids(pixels, k)
+  
+  for (let iter = 0; iter < maxIterations; iter++) {
+    // Atribuir pixels aos clusters
+    const clusters: RGB[][] = Array.from({ length: k }, () => [])
+    
+    for (const pixel of pixels) {
+      let minDist = Infinity
+      let minIdx = 0
+      
+      for (let i = 0; i < centroids.length; i++) {
+        const dist = Math.pow(pixel.r - centroids[i].r, 2) +
+                     Math.pow(pixel.g - centroids[i].g, 2) +
+                     Math.pow(pixel.b - centroids[i].b, 2)
+        if (dist < minDist) {
+          minDist = dist
+          minIdx = i
+        }
+      }
+      
+      clusters[minIdx].push(pixel)
+    }
+    
+    // Atualizar centroids
+    const newCentroids: RGB[] = []
+    for (let i = 0; i < k; i++) {
+      if (clusters[i].length === 0) {
+        newCentroids.push(centroids[i])
+        continue
+      }
+      
+      let sumR = 0, sumG = 0, sumB = 0
+      for (const pixel of clusters[i]) {
+        sumR += pixel.r
+        sumG += pixel.g
+        sumB += pixel.b
+      }
+      
+      newCentroids.push({
+        r: Math.round(sumR / clusters[i].length),
+        g: Math.round(sumG / clusters[i].length),
+        b: Math.round(sumB / clusters[i].length)
+      })
+    }
+    
+    centroids = newCentroids
+  }
+  
+  // Contar pixels em cada cluster final
+  const clusterCounts: number[] = Array(k).fill(0)
+  for (const pixel of pixels) {
+    let minDist = Infinity
+    let minIdx = 0
+    
+    for (let i = 0; i < centroids.length; i++) {
+      const dist = Math.pow(pixel.r - centroids[i].r, 2) +
+                   Math.pow(pixel.g - centroids[i].g, 2) +
+                   Math.pow(pixel.b - centroids[i].b, 2)
+      if (dist < minDist) {
+        minDist = dist
+        minIdx = i
+      }
+    }
+    
+    clusterCounts[minIdx]++
+  }
+  
+  // Retornar clusters ordenados por frequência
+  const result: ColorCluster[] = centroids.map((rgb, i) => ({
+    rgb,
+    lab: rgbToLab(rgb),
+    count: clusterCounts[i]
   }))
   
-  // Ordenar por frequência (mais frequente primeiro)
-  clusters.sort((a, b) => b.count - a.count)
-  
-  return clusters
+  result.sort((a, b) => b.count - a.count)
+  return result
 }
 
+// ============== MATCHING COM PALETA ==============
+
 /**
- * Verifica se uma cor é provavelmente fundo (branco, cinza claro, bege claro)
+ * Encontra o nome da cor mais próxima na paleta
  */
-function isLikelyBackground(r: number, g: number, b: number): boolean {
-  const brightness = (r + g + b) / 3
-  const diff = Math.max(r, g, b) - Math.min(r, g, b)
+function findClosestColorName(lab: LAB): string {
+  let minDist = Infinity
+  let closestName = 'Desconhecido'
   
-  // Branco ou quase branco
-  if (brightness > 230 && diff < 30) return true
+  for (const color of PALETTE_WITH_LAB) {
+    const dist = deltaE(lab, color.lab)
+    if (dist < minDist) {
+      minDist = dist
+      closestName = color.name
+    }
+  }
   
-  // Cinza muito claro
-  if (brightness > 200 && diff < 20) return true
-  
-  return false
+  return closestName
 }
+
+// ============== EXTRAÇÃO DE COR ==============
 
 /**
  * Extrai a cor dominante de uma imagem
@@ -99,7 +332,8 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
           return
         }
         
-        const maxSize = 150
+        // Redimensionar para processamento rápido
+        const maxSize = 100
         const ratio = Math.min(maxSize / img.width, maxSize / img.height)
         canvas.width = Math.max(1, Math.floor(img.width * ratio))
         canvas.height = Math.max(1, Math.floor(img.height * ratio))
@@ -111,33 +345,32 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
         const width = canvas.width
         const height = canvas.height
         
-        // Coletar pixels do centro da imagem (onde a peça provavelmente está)
-        // Usar região central (60% da imagem)
-        const marginX = Math.floor(width * 0.2)
-        const marginY = Math.floor(height * 0.2)
-        const centerPixels: Array<{ r: number; g: number; b: number }> = []
+        // Coletar pixels do centro (70% central para evitar bordas/fundo)
+        const marginX = Math.floor(width * 0.15)
+        const marginY = Math.floor(height * 0.15)
+        const centerPixels: RGB[] = []
         
         for (let y = marginY; y < height - marginY; y++) {
           for (let x = marginX; x < width - marginX; x++) {
             const idx = (y * width + x) * 4
-            const r = pixels[idx]
-            const g = pixels[idx + 1]
-            const b = pixels[idx + 2]
             const a = pixels[idx + 3]
             
-            if (a > 128) {
-              centerPixels.push({ r, g, b })
-            }
+            // Ignorar transparentes
+            if (a < 128) continue
+            
+            centerPixels.push({
+              r: pixels[idx],
+              g: pixels[idx + 1],
+              b: pixels[idx + 2]
+            })
           }
         }
         
-        // Se não há pixels centrais suficientes, usar todos
-        let allPixels = centerPixels
-        if (centerPixels.length < 100) {
-          allPixels = []
+        // Fallback: usar todos os pixels se centro não tem suficientes
+        if (centerPixels.length < 50) {
           for (let i = 0; i < pixels.length; i += 4) {
-            if (pixels[i + 3] > 128) {
-              allPixels.push({
+            if (pixels[i + 3] >= 128) {
+              centerPixels.push({
                 r: pixels[i],
                 g: pixels[i + 1],
                 b: pixels[i + 2]
@@ -146,45 +379,41 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
           }
         }
         
-        if (allPixels.length === 0) {
+        if (centerPixels.length === 0) {
           resolve(null)
           return
         }
         
-        // Agrupar cores por similaridade
-        const clusters = clusterColors(allPixels)
+        // K-means com 5 clusters
+        const clusters = kMeansClustering(centerPixels, 5, 15)
         
         if (clusters.length === 0) {
           resolve(null)
           return
         }
         
-        // Encontrar a cor dominante que NÃO é fundo
-        let dominantColor = clusters[0]
+        // Escolher a cor dominante
+        // Ignorar clusters que parecem fundo (branco/cinza muito claro com baixa saturação)
+        let dominantCluster = clusters[0]
         
         for (const cluster of clusters) {
-          // Se este cluster tem pelo menos 10% dos pixels e não é fundo
-          const percentage = cluster.count / allPixels.length
-          if (percentage >= 0.10 && !isLikelyBackground(cluster.r, cluster.g, cluster.b)) {
-            dominantColor = cluster
+          const { r, g, b } = cluster.rgb
+          const brightness = (r + g + b) / 3
+          const diff = Math.max(r, g, b) - Math.min(r, g, b)
+          
+          // É fundo típico? (muito claro e sem saturação)
+          const isBackground = brightness > 230 && diff < 25
+          
+          // Se não é fundo e tem pelo menos 10% dos pixels, usar
+          const percentage = cluster.count / centerPixels.length
+          if (!isBackground && percentage >= 0.10) {
+            dominantCluster = cluster
             break
           }
         }
         
-        // Se todos parecem fundo, usar o mais frequente mesmo assim
-        // (pode ser uma peça branca)
-        if (isLikelyBackground(dominantColor.r, dominantColor.g, dominantColor.b)) {
-          // Verificar se há outra cor significativa
-          for (const cluster of clusters) {
-            const percentage = cluster.count / allPixels.length
-            if (percentage >= 0.15 && !isLikelyBackground(cluster.r, cluster.g, cluster.b)) {
-              dominantColor = cluster
-              break
-            }
-          }
-        }
-        
-        const colorName = rgbToColorName(dominantColor.r, dominantColor.g, dominantColor.b)
+        // Encontrar nome da cor na paleta
+        const colorName = findClosestColorName(dominantCluster.lab)
         resolve(colorName)
       } catch (error) {
         console.error('Erro ao extrair cor:', error)
@@ -198,132 +427,4 @@ export async function extractDominantColor(imageSrc: string): Promise<string | n
     
     img.src = imageSrc
   })
-}
-
-/**
- * Converte RGB para nome de cor em português
- */
-function rgbToColorName(r: number, g: number, b: number): string {
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const diff = max - min
-  const brightness = (r + g + b) / 3
-  
-  // ========== CORES NEUTRAS (verificação direta RGB) ==========
-  
-  // Branco: componentes todos altos e similares
-  if (r >= 220 && g >= 220 && b >= 220 && diff <= 35) {
-    return 'Branco'
-  }
-  
-  // Preto: componentes todos baixos e similares
-  if (r <= 40 && g <= 40 && b <= 40) {
-    return 'Preto'
-  }
-  
-  // Cinza: componentes equilibrados
-  if (diff <= 25) {
-    if (brightness >= 200) return 'Branco'
-    if (brightness <= 50) return 'Preto'
-    if (brightness >= 150) return 'Cinza Claro'
-    return 'Cinza'
-  }
-  
-  // ========== ANÁLISE HSV ==========
-  const hsv = rgbToHsv(r, g, b)
-  const { h, s, v } = hsv
-  
-  // Preto (baixo brilho)
-  if (v < 20) return 'Preto'
-  
-  // Branco (alto brilho, baixa saturação)
-  if (v > 90 && s < 15) return 'Branco'
-  
-  // Cinza (baixa saturação)
-  if (s < 15) {
-    if (v > 70) return 'Cinza Claro'
-    if (v < 30) return 'Preto'
-    return 'Cinza'
-  }
-  
-  // Cores pastéis/terra (saturação média-baixa)
-  if (s < 35) {
-    if (v > 75) return 'Bege'
-    if (v < 35) return 'Castanho'
-    return 'Cinza'
-  }
-  
-  // ========== CORES SATURADAS (por matiz) ==========
-  
-  // Vermelho: 0-20° e 340-360°
-  if ((h >= 0 && h < 20) || (h >= 340 && h <= 360)) {
-    if (v < 30) return 'Bordô'
-    if (s < 50 && v > 65) return 'Rosa'
-    return 'Vermelho'
-  }
-  
-  // Laranja: 20-45°
-  if (h >= 20 && h < 45) {
-    if (v < 35) return 'Castanho'
-    return 'Laranja'
-  }
-  
-  // Amarelo: 45-70°
-  if (h >= 45 && h < 70) {
-    if (s < 40) return 'Bege'
-    return 'Amarelo'
-  }
-  
-  // Verde: 70-160°
-  if (h >= 70 && h < 160) {
-    if (v > 70 && s > 50) return 'Verde Claro'
-    return 'Verde'
-  }
-  
-  // Ciano/Turquesa: 160-200°
-  if (h >= 160 && h < 200) {
-    if (v > 70) return 'Azul Claro'
-    return 'Azul'
-  }
-  
-  // Azul: 200-260°
-  if (h >= 200 && h < 260) {
-    if (v > 70 && s < 60) return 'Azul Claro'
-    return 'Azul'
-  }
-  
-  // Roxo/Violeta: 260-310°
-  if (h >= 260 && h < 310) {
-    return 'Roxo'
-  }
-  
-  // Rosa/Magenta: 310-340°
-  if (h >= 310 && h < 340) {
-    if (v > 60) return 'Rosa'
-    return 'Roxo'
-  }
-  
-  // ========== FALLBACK RGB ==========
-  if (r > g + 50 && r > b + 50) {
-    if (brightness < 80) return 'Bordô'
-    return 'Vermelho'
-  }
-  
-  if (g > r + 50 && g > b + 50) {
-    return 'Verde'
-  }
-  
-  if (b > r + 50 && b > g + 50) {
-    return 'Azul'
-  }
-  
-  // Cor mista
-  if (r > 200 && g > 200 && b < 100) return 'Amarelo'
-  if (r > 200 && g < 100 && b > 200) return 'Roxo'
-  if (r < 100 && g > 200 && b > 200) return 'Azul Claro'
-  
-  // Último recurso
-  if (brightness > 180) return 'Branco'
-  if (brightness < 60) return 'Preto'
-  return 'Cinza'
 }
