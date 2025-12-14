@@ -283,9 +283,9 @@ export default function AddMultipleClothingItemsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
+      <DialogContent className="sm:max-w-6xl h-full sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="text-lg sm:text-2xl font-bold">
             {step === 'category' && 'Adicionar Múltiplas Peças'}
             {step === 'photos' && 'Adicionar Fotos'}
             {step === 'review' && 'Revisão e Criação'}
@@ -293,17 +293,17 @@ export default function AddMultipleClothingItemsDialog({
         </DialogHeader>
 
         {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg">
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg flex-shrink-0">
             {error}
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {step === 'category' && (
-            <div className="space-y-6 py-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-blue-800">
-                  <strong>Apenas a categoria é obrigatória.</strong> Os restantes campos são opcionais e serão aplicados a todas as peças. Pode também deixar em branco e preencher individualmente na revisão.
+            <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-blue-800">
+                  <strong>Apenas a categoria é obrigatória.</strong> Os restantes campos são opcionais e serão aplicados a todas as peças.
                 </p>
               </div>
 
@@ -440,13 +440,13 @@ export default function AddMultipleClothingItemsDialog({
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-4 pt-4 border-t">
-                <Button variant="outline" onClick={handleClose}>
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
+                <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
                 <Button
                   onClick={handleCategoryContinue}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 w-full sm:w-auto"
                 >
                   Continuar para Fotos
                 </Button>
@@ -546,28 +546,28 @@ export default function AddMultipleClothingItemsDialog({
           )}
 
           {step === 'review' && (
-            <div className="space-y-6 py-4">
+            <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
               {pendingItems.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                    <Check className="h-8 w-8 text-green-600" />
+                <div className="text-center py-8 sm:py-12">
+                  <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-green-100 rounded-full mb-4">
+                    <Check className="h-7 w-7 sm:h-8 sm:w-8 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                     Todas as peças foram processadas!
                   </h3>
                   <Button
                     onClick={handleFinish}
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600"
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 w-full sm:w-auto"
                   >
                     Concluir
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="space-y-4 sm:space-y-6">
                   {pendingItems.map((item, index) => (
                     <div
                       key={item.id}
-                      className={`border-2 rounded-lg p-4 transition-all ${
+                      className={`border-2 rounded-lg p-3 sm:p-4 transition-all ${
                         discardedItems.has(item.id)
                           ? 'opacity-50 border-gray-200 bg-gray-50'
                           : creatingItems.has(item.id)
@@ -575,78 +575,73 @@ export default function AddMultipleClothingItemsDialog({
                           : 'border-gray-300 bg-white hover:border-indigo-400'
                       }`}
                     >
-                      <div className="flex flex-col lg:flex-row gap-4">
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                         {/* Foto */}
-                        <div className="flex-shrink-0 lg:w-1/3">
+                        <div className="flex-shrink-0 sm:w-1/3">
                           <div className="relative">
                             <img
                               src={item.photo}
                               alt={`Peça ${index + 1}`}
-                              className="w-full h-48 lg:h-64 object-cover rounded-lg border-2 border-gray-200"
+                              className="w-full h-36 sm:h-48 lg:h-56 object-cover rounded-lg border-2 border-gray-200"
                             />
-                            <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm font-semibold">
-                              Peça {index + 1}
+                            <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-0.5 rounded text-xs sm:text-sm font-semibold">
+                              #{index + 1}
                             </div>
                           </div>
                         </div>
 
                         {/* Formulário */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-                            <h4 className="font-semibold text-gray-800 text-lg">
-                              Peça {index + 1}
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => createItem(item)}
-                                disabled={
-                                  creatingItems.has(item.id) || 
-                                  !item.subcategory || 
-                                  !item.colors ||
-                                  (!item.sizeOptionId && !item.size?.trim())
-                                }
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                {creatingItems.has(item.id) ? (
-                                  'A criar...'
-                                ) : (
-                                  <>
-                                    <Check className="mr-1 h-3 w-3" />
-                                    Criar
-                                  </>
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => saveItemWithoutClassification(item)}
-                                disabled={creatingItems.has(item.id)}
-                                variant="outline"
-                                className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                              >
-                                {creatingItems.has(item.id) ? (
-                                  'A guardar...'
-                                ) : (
-                                  <>
-                                    <Check className="mr-1 h-3 w-3" />
-                                    <span className="hidden sm:inline">Guardar sem classificar</span>
-                                    <span className="sm:hidden">Guardar</span>
-                                  </>
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => discardItem(item)}
-                                disabled={creatingItems.has(item.id)}
-                              >
-                                <Trash2 className="h-3 w-3 sm:mr-1" />
-                                <span className="hidden sm:inline">Eliminar</span>
-                              </Button>
-                            </div>
+                          {/* Botões de ação - sempre no topo em mobile */}
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3">
+                            <Button
+                              size="sm"
+                              onClick={() => createItem(item)}
+                              disabled={
+                                creatingItems.has(item.id) || 
+                                !item.subcategory || 
+                                !item.colors ||
+                                (!item.sizeOptionId && !item.size?.trim())
+                              }
+                              className="bg-green-600 hover:bg-green-700 h-9 px-2 sm:px-3 text-xs sm:text-sm"
+                            >
+                              {creatingItems.has(item.id) ? (
+                                '...'
+                              ) : (
+                                <>
+                                  <Check className="h-3.5 w-3.5 sm:mr-1" />
+                                  <span className="hidden sm:inline">Criar</span>
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => saveItemWithoutClassification(item)}
+                              disabled={creatingItems.has(item.id)}
+                              variant="outline"
+                              className="border-orange-500 text-orange-600 hover:bg-orange-50 h-9 px-2 sm:px-3 text-xs sm:text-sm"
+                            >
+                              {creatingItems.has(item.id) ? (
+                                '...'
+                              ) : (
+                                <>
+                                  <Check className="h-3.5 w-3.5 sm:mr-1" />
+                                  <span className="hidden sm:inline">Guardar</span>
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => discardItem(item)}
+                              disabled={creatingItems.has(item.id)}
+                              className="h-9 px-2 sm:px-3"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
 
-                          <div className="space-y-3">
+                          <div className="space-y-2.5 sm:space-y-3">
                             <div className="space-y-1">
                               <Label className="text-xs">Subcategoria *</Label>
                               <Select
@@ -763,23 +758,25 @@ export default function AddMultipleClothingItemsDialog({
               )}
 
               {pendingItems.length > 0 && (
-                <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 pt-4 border-t flex-shrink-0">
                   <Button
                     variant="outline"
                     onClick={() => {
                       setStep('photos')
                       setPendingItems([])
                     }}
+                    className="order-2 sm:order-1"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Voltar
                   </Button>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600 text-center order-1 sm:order-2">
                     {pendingItems.length} peça(s) pendente(s)
                   </div>
                   <Button
                     variant="outline"
                     onClick={handleFinish}
+                    className="order-3"
                   >
                     Concluir
                   </Button>
