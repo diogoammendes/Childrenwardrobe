@@ -101,21 +101,6 @@ export default function AddMultipleClothingItemsDialog({
       })
       
       newPhotos.push(photoData)
-      
-      // Analisar cor apenas se o campo de cores estiver vazio
-      if (!prefillData.colors || prefillData.colors.trim() === '') {
-        try {
-          const dominantColor = await extractDominantColor(photoData)
-          if (dominantColor) {
-            setPrefillData(prev => ({
-              ...prev,
-              colors: prev.colors ? `${prev.colors}, ${dominantColor}` : dominantColor
-            }))
-          }
-        } catch (error) {
-          console.error('Erro ao analisar cor:', error)
-        }
-      }
     }
     
     setPhotos((prev) => [...prev, ...newPhotos])
@@ -124,48 +109,60 @@ export default function AddMultipleClothingItemsDialog({
   const handleCameraCapture = async (capturedPhotos: string[]) => {
     setPhotos((prev) => [...prev, ...capturedPhotos])
     setShowCamera(false)
-    
-    // Analisar cor da primeira foto se o campo estiver vazio
-    if ((!prefillData.colors || prefillData.colors.trim() === '') && capturedPhotos.length > 0) {
-      try {
-        const dominantColor = await extractDominantColor(capturedPhotos[0])
-        if (dominantColor) {
-          setPrefillData(prev => ({
-            ...prev,
-            colors: dominantColor
-          }))
-        }
-      } catch (error) {
-        console.error('Erro ao analisar cor:', error)
-      }
-    }
   }
 
   const removePhoto = (index: number) => {
     setPhotos((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const handlePhotosSubmit = () => {
+  const handlePhotosSubmit = async () => {
     if (photos.length === 0) {
       setError('Adicione pelo menos uma foto')
       return
     }
 
-    // Criar items pendentes com valores pré-preenchidos (ou padrão se não preenchidos)
-    const items: PendingItem[] = photos.map((photo, index) => ({
-      id: `pending-${Date.now()}-${index}`,
-      photo,
-      subcategory: prefillData.subcategory || '',
-      sizeOptionId: prefillData.sizeOptionId !== '__none__' ? prefillData.sizeOptionId : '',
-      size: prefillData.size || '',
-      colors: prefillData.colors || '',
-      status: prefillData.status,
-      disposition: prefillData.disposition,
-    }))
-
-    setPendingItems(items)
-    setStep('review')
+    setLoading(true)
     setError('')
+
+    try {
+      // Criar items pendentes com análise de cor individual para cada foto
+      const items: PendingItem[] = await Promise.all(
+        photos.map(async (photo, index) => {
+          // Se não houver cor pré-preenchida, analisar a cor desta foto específica
+          let photoColor = prefillData.colors || ''
+          
+          if (!photoColor.trim()) {
+            try {
+              const dominantColor = await extractDominantColor(photo)
+              if (dominantColor) {
+                photoColor = dominantColor
+              }
+            } catch (error) {
+              console.error(`Erro ao analisar cor da foto ${index + 1}:`, error)
+            }
+          }
+
+          return {
+            id: `pending-${Date.now()}-${index}`,
+            photo,
+            subcategory: prefillData.subcategory || '',
+            sizeOptionId: prefillData.sizeOptionId !== '__none__' ? prefillData.sizeOptionId : '',
+            size: prefillData.size || '',
+            colors: photoColor,
+            status: prefillData.status,
+            disposition: prefillData.disposition,
+          }
+        })
+      )
+
+      setPendingItems(items)
+      setStep('review')
+    } catch (error) {
+      console.error('Erro ao processar fotos:', error)
+      setError('Erro ao processar fotos. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const updatePendingItem = (id: string, updates: Partial<PendingItem>) => {
