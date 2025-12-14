@@ -281,6 +281,30 @@ export default function AddMultipleClothingItemsDialog({
     handleClose()
   }
 
+  // Guardar todas as peças pendentes e depois fechar
+  const handleSaveAllAndFinish = async () => {
+    if (pendingItems.length === 0) {
+      handleFinish()
+      return
+    }
+
+    setLoading(true)
+    setError('')
+
+    try {
+      // Guardar todas as peças (sem validação completa se necessário)
+      for (const item of pendingItems) {
+        await createItem(item, true) // skipValidation = true
+      }
+      
+      handleFinish()
+    } catch (err: any) {
+      setError('Erro ao guardar peças. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-6xl h-full sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col">
@@ -766,6 +790,7 @@ export default function AddMultipleClothingItemsDialog({
                       setPendingItems([])
                     }}
                     className="order-2 sm:order-1"
+                    disabled={loading}
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Voltar
@@ -773,13 +798,23 @@ export default function AddMultipleClothingItemsDialog({
                   <div className="text-xs sm:text-sm text-gray-600 text-center order-1 sm:order-2">
                     {pendingItems.length} peça(s) pendente(s)
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={handleFinish}
-                    className="order-3"
-                  >
-                    Concluir
-                  </Button>
+                  <div className="flex gap-2 order-3">
+                    <Button
+                      variant="outline"
+                      onClick={handleFinish}
+                      disabled={loading}
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={handleSaveAllAndFinish}
+                      disabled={loading}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {loading ? 'A guardar...' : `Guardar Todas (${pendingItems.length})`}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
