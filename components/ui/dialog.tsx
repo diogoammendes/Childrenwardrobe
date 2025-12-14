@@ -36,8 +36,8 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        // Mobile: full screen com padding seguro
-        "fixed inset-x-0 bottom-0 top-0 z-50 flex flex-col bg-background shadow-lg duration-200",
+        // Mobile: full screen com padding seguro e sem overflow
+        "fixed inset-0 z-50 flex flex-col bg-background shadow-lg duration-200 overflow-hidden",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         // Desktop: centrado e com tamanho limitado

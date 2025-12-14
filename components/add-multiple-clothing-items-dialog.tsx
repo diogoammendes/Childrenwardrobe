@@ -292,14 +292,95 @@ export default function AddMultipleClothingItemsDialog({
     setError('')
 
     try {
-      // Guardar todas as peças (sem validação completa se necessário)
-      for (const item of pendingItems) {
-        await createItem(item, true) // skipValidation = true
+      // Criar cópia do array para não modificar durante iteração
+      const itemsToSave = [...pendingItems]
+      const savedItemIds = new Set<string>()
+      let successCount = 0
+      let errorCount = 0
+
+      // Guardar todas as peças sequencialmente
+      for (const item of itemsToSave) {
+        try {
+          // Processar cores
+          let colorsArray: string[] | null = null
+          if (item.colors && item.colors.trim() !== '') {
+            colorsArray = item.colors
+              .split(',')
+              .map((c) => c.trim())
+              .filter((c) => c.length > 0)
+            
+            if (colorsArray.length === 0) {
+              colorsArray = null
+            }
+          }
+
+          // Normalizar sizeOptionId
+          const normalizedSizeOptionId = item.sizeOptionId === '__none__' || !item.sizeOptionId ? null : item.sizeOptionId
+
+          const response = await fetch('/api/clothing-items', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              category,
+              subcategory: item.subcategory || null,
+              size: item.size?.trim() || null,
+              sizeOptionId: normalizedSizeOptionId,
+              colors: colorsArray,
+              photo: item.photo,
+              status: item.status,
+              disposition: item.disposition,
+              isSet: false,
+              setItemId: null,
+              childId,
+              needsClassification: !item.subcategory || !colorsArray || (!normalizedSizeOptionId && !item.size?.trim()),
+            }),
+          })
+
+          if (!response.ok) {
+            const data = await response.json()
+            throw new Error(data.error || 'Erro ao criar peça')
+          }
+
+          successCount++
+          savedItemIds.add(item.id)
+        } catch (err: any) {
+          console.error('Erro ao guardar peça:', err)
+          errorCount++
+        }
+      }
+
+      // Remover todos os itens guardados de uma vez
+      if (savedItemIds.size > 0) {
+        setPendingItems((prev) => prev.filter((i) => !savedItemIds.has(i.id)))
+        
+        // Remover fotos correspondentes - usar índices originais
+        setPhotos((prev) => {
+          const indicesToRemove = new Set<number>()
+          itemsToSave.forEach((item, originalIndex) => {
+            if (savedItemIds.has(item.id) && originalIndex < prev.length) {
+              indicesToRemove.add(originalIndex)
+            }
+          })
+          
+          return prev.filter((_, index) => !indicesToRemove.has(index))
+        })
+      }
+
+      if (errorCount > 0) {
+        setError(`${errorCount} peça(s) não foram guardadas. ${successCount} guardada(s) com sucesso.`)
+        if (successCount === 0) {
+          // Se nenhuma foi guardada, não fechar
+          return
+        }
       }
       
-      handleFinish()
+      // Só fechar se pelo menos algumas foram guardadas
+      if (successCount > 0) {
+        handleFinish()
+      }
     } catch (err: any) {
       setError('Erro ao guardar peças. Tente novamente.')
+      console.error('Erro geral:', err)
     } finally {
       setLoading(false)
     }
@@ -307,7 +388,7 @@ export default function AddMultipleClothingItemsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-6xl h-full sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="w-full max-w-[100vw] sm:max-w-4xl h-full sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-lg sm:text-2xl font-bold">
             {step === 'category' && 'Adicionar Múltiplas Peças'}
@@ -322,7 +403,7 @@ export default function AddMultipleClothingItemsDialog({
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 w-full">
           {step === 'category' && (
             <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
@@ -615,7 +696,7 @@ export default function AddMultipleClothingItemsDialog({
                         </div>
 
                         {/* Formulário */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 max-w-full overflow-hidden">
                           {/* Botões de ação - sempre no topo em mobile */}
                           <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3">
                             <Button
