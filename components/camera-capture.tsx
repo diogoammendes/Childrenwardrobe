@@ -163,13 +163,13 @@ export default function CameraCapture({
       ) : (
         <>
           {/* Preview da câmara - área fixa */}
-          <div className="relative bg-black rounded-lg overflow-hidden flex-shrink-0">
+          <div className="relative bg-black rounded-lg overflow-hidden flex-shrink-0 aspect-video">
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className="w-full h-auto max-h-[40vh] object-contain"
+              className="w-full h-full object-cover"
             />
             {isCapturing && (
               <div className="absolute inset-0 bg-white opacity-50 flex items-center justify-center">

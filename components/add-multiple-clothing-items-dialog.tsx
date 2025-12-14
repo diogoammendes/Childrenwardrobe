@@ -126,6 +126,8 @@ export default function AddMultipleClothingItemsDialog({
 
     try {
       // Criar items pendentes com análise de cor individual para cada foto
+      // Usar timestamp base para evitar IDs duplicados
+      const baseTimestamp = Date.now()
       const items: PendingItem[] = await Promise.all(
         photos.map(async (photo, index) => {
           // Se não houver cor pré-preenchida, analisar a cor desta foto específica
@@ -143,7 +145,7 @@ export default function AddMultipleClothingItemsDialog({
           }
 
           return {
-            id: `pending-${Date.now()}-${index}`,
+            id: `pending-${baseTimestamp}-${index}-${Math.random().toString(36).substr(2, 9)}`,
             photo,
             subcategory: prefillData.subcategory || '',
             sizeOptionId: prefillData.sizeOptionId !== '__none__' ? prefillData.sizeOptionId : '',

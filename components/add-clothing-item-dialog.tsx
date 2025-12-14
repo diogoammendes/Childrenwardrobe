@@ -45,6 +45,7 @@ export default function AddClothingItemDialog({
     category: '' as ClothingCategory | '',
     subcategory: '',
     sizeOptionId: '',
+    size: '', // Campo de tamanho texto livre
     colors: '',
     photo: '',
     status: 'IN_USE' as 'RETIRED' | 'IN_USE' | 'FUTURE_USE',
@@ -64,8 +65,9 @@ export default function AddClothingItemDialog({
         .map((c) => c.trim())
         .filter((c) => c.length > 0)
 
-      if (!formData.sizeOptionId) {
-        throw new Error('Selecione um tamanho antes de guardar.')
+      // Validar que pelo menos um tamanho foi preenchido
+      if (!formData.sizeOptionId && !formData.size?.trim()) {
+        throw new Error('Preencha pelo menos um tamanho (lista ou texto livre)')
       }
 
       const response = await fetch('/api/clothing-items', {
@@ -75,7 +77,8 @@ export default function AddClothingItemDialog({
           ...formData,
           colors: colorsArray,
           childId,
-          sizeOptionId: formData.sizeOptionId,
+          sizeOptionId: formData.sizeOptionId || null,
+          size: formData.size?.trim() || null,
         }),
       })
 
@@ -91,6 +94,7 @@ export default function AddClothingItemDialog({
         category: '' as ClothingCategory | '',
         subcategory: '',
         sizeOptionId: '',
+        size: '',
         colors: '',
         photo: '',
         status: 'IN_USE',
@@ -178,31 +182,43 @@ export default function AddClothingItemDialog({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="size">Tamanho *</Label>
-            <Select
-              value={formData.sizeOptionId || undefined}
-              onValueChange={(value) => setFormData({ ...formData, sizeOptionId: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tamanho" />
-              </SelectTrigger>
-              <SelectContent>
-                {sizeOptions.length === 0 ? (
-                  <SelectItem value="__disabled" disabled>
-                    Configure os tamanhos na área de administração
-                  </SelectItem>
-                ) : (
-                  sizeOptions.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      {option.label}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="size">Tamanho (lista)</Label>
+              <Select
+                value={formData.sizeOptionId || '__none__'}
+                onValueChange={(value) => setFormData({ ...formData, sizeOptionId: value === '__none__' ? '' : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Opcional" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Sem tamanho</SelectItem>
+                  {sizeOptions.length === 0 ? (
+                    <SelectItem value="__disabled" disabled>
+                      Configure os tamanhos na área de administração
                     </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-500">Gestão da lista disponível em Administração &gt; Tamanhos.</p>
+                  ) : (
+                    sizeOptions.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="size-text">Tamanho (texto livre)</Label>
+              <Input
+                id="size-text"
+                value={formData.size}
+                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                placeholder="Ex: 2 anos, 86, M"
+              />
+            </div>
           </div>
+          <p className="text-xs text-gray-500">Preencha pelo menos um tamanho (lista ou texto livre).</p>
 
           <div className="space-y-2">
             <Label htmlFor="colors">Cores (separadas por vírgula) *</Label>
