@@ -37,13 +37,13 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         // Mobile: full screen com padding seguro e sem overflow
-        "fixed inset-0 z-50 flex flex-col bg-background shadow-lg duration-200 overflow-hidden",
+        "fixed inset-0 z-50 flex flex-col bg-background shadow-lg duration-200 overflow-hidden box-border",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         // Desktop: centrado e com tamanho limitado
         "sm:inset-auto sm:left-[50%] sm:top-[50%] sm:max-h-[90vh] sm:w-full sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg sm:border",
-        // Padding e gap
-        "gap-4 p-4 sm:p-6",
+        // Padding e gap - reduzido em mobile
+        "gap-2 p-3 sm:gap-4 sm:p-6",
         className
       )}
       {...props}

@@ -53,9 +53,24 @@
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-foreground;
     background-attachment: fixed;
+    overflow-x: hidden;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+  html {
+    position: relative;
+  }
+  body {
+    position: relative;
+    width: 100%;
+  }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
 }
 

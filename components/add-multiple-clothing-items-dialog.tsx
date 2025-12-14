@@ -388,7 +388,7 @@ export default function AddMultipleClothingItemsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-[100vw] sm:max-w-4xl h-full sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="w-full max-w-[100vw] sm:max-w-4xl h-full sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col box-border">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-lg sm:text-2xl font-bold">
             {step === 'category' && 'Adicionar Múltiplas Peças'}
@@ -403,9 +403,9 @@ export default function AddMultipleClothingItemsDialog({
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 w-full">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 w-full box-border max-w-full">
           {step === 'category' && (
-            <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
+            <div className="space-y-3 sm:space-y-6 py-2 sm:py-4 max-w-full">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
                 <p className="text-xs sm:text-sm text-blue-800">
                   <strong>Apenas a categoria é obrigatória.</strong> Os restantes campos são opcionais e serão aplicados a todas as peças.
@@ -504,7 +504,7 @@ export default function AddMultipleClothingItemsDialog({
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="prefill-status">Estado</Label>
                     <Select
@@ -545,7 +545,7 @@ export default function AddMultipleClothingItemsDialog({
                 </div>
               </div>
 
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
+                  <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-4 pt-3 sm:pt-4 border-t max-w-full">
                 <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
@@ -569,7 +569,7 @@ export default function AddMultipleClothingItemsDialog({
                 />
               ) : (
                 <>
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 max-w-full">
                     <Button
                       type="button"
                       variant="outline"
@@ -602,7 +602,7 @@ export default function AddMultipleClothingItemsDialog({
                   {photos.length > 0 && (
                     <div>
                       <Label>Fotos selecionadas ({photos.length})</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4 mt-2 max-w-full">
                         {photos.map((photo, index) => (
                           <div key={index} className="relative group">
                             <img
@@ -628,7 +628,7 @@ export default function AddMultipleClothingItemsDialog({
                     </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t gap-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-center pt-3 sm:pt-4 border-t gap-2 max-w-full">
                     <Button
                       variant="outline"
                       onClick={() => setStep('category')}
@@ -651,7 +651,7 @@ export default function AddMultipleClothingItemsDialog({
           )}
 
           {step === 'review' && (
-            <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
+            <div className="space-y-3 sm:space-y-6 py-2 sm:py-4 max-w-full">
               {pendingItems.length === 0 ? (
                 <div className="text-center py-8 sm:py-12">
                   <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-green-100 rounded-full mb-4">
@@ -680,7 +680,7 @@ export default function AddMultipleClothingItemsDialog({
                           : 'border-gray-300 bg-white hover:border-indigo-400'
                       }`}
                     >
-                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 max-w-full">
                         {/* Foto */}
                         <div className="flex-shrink-0 sm:w-1/3">
                           <div className="relative">
@@ -768,7 +768,7 @@ export default function AddMultipleClothingItemsDialog({
                               </Select>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-full">
                               <div className="space-y-1">
                                 <Label className="text-xs">Tamanho (lista)</Label>
                                 <Select
@@ -815,7 +815,7 @@ export default function AddMultipleClothingItemsDialog({
                               />
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-full">
                               <div className="space-y-1">
                                 <Label className="text-xs">Estado</Label>
                                 <Select
@@ -863,7 +863,7 @@ export default function AddMultipleClothingItemsDialog({
               )}
 
               {pendingItems.length > 0 && (
-                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 pt-4 border-t flex-shrink-0">
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 pt-3 sm:pt-4 border-t flex-shrink-0 max-w-full">
                   <Button
                     variant="outline"
                     onClick={() => {
